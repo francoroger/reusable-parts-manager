@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DashboardView } from "@/components/dashboard/DashboardView";
 import { PartsGrid } from "@/components/dashboard/PartsGrid";
+import { KanbanBoard } from "@/components/dashboard/KanbanBoard";
 
 const Index = () => {
   const [parts, setParts] = useState<Part[]>([]);
@@ -63,24 +64,11 @@ const Index = () => {
   };
 
   const handleArchivePart = (part: Part) => {
-    const updatedPart = { ...part, archived: true };
+    const updatedPart = { ...part, archived: !part.archived };
     setParts(parts.map((p) => (p.id === part.id ? updatedPart : p)));
     toast({
-      title: "OS arquivada",
-      description: `OS #${part.serviceOrderNumber} foi arquivada com sucesso.`,
-    });
-  };
-
-  const handleAddProvider = (newProvider: Omit<ServiceProvider, "id">) => {
-    const provider: ServiceProvider = {
-      ...newProvider,
-      id: Date.now().toString(),
-    };
-
-    setProviders([...providers, provider]);
-    toast({
-      title: "Prestador cadastrado com sucesso",
-      description: `${provider.name} foi adicionado ao sistema.`,
+      title: part.archived ? "OS desarquivada" : "OS arquivada",
+      description: `OS #${part.serviceOrderNumber} foi ${part.archived ? 'desarquivada' : 'arquivada'} com sucesso.`,
     });
   };
 
@@ -125,12 +113,21 @@ const Index = () => {
         <Tabs defaultValue="dashboard" className="space-y-6">
           <TabsList>
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="kanban">Kanban</TabsTrigger>
             <TabsTrigger value="active">OS Ativas</TabsTrigger>
             <TabsTrigger value="archived">Arquivadas</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
             <DashboardView parts={filteredParts} />
+          </TabsContent>
+
+          <TabsContent value="kanban" className="space-y-6">
+            <KanbanBoard
+              parts={filteredParts}
+              onEditPart={setEditingPart}
+              onArchivePart={handleArchivePart}
+            />
           </TabsContent>
 
           <TabsContent value="active" className="space-y-6">
@@ -145,6 +142,7 @@ const Index = () => {
             <PartsGrid
               parts={filteredParts}
               onEditPart={setEditingPart}
+              onArchivePart={handleArchivePart}
               showArchived={true}
             />
           </TabsContent>
