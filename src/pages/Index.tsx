@@ -72,6 +72,19 @@ const Index = () => {
     });
   };
 
+  const handleAddProvider = (newProvider: Omit<ServiceProvider, "id">) => {
+    const provider: ServiceProvider = {
+      ...newProvider,
+      id: Date.now().toString(),
+    };
+
+    setProviders([...providers, provider]);
+    toast({
+      title: "Prestador cadastrado com sucesso",
+      description: `${provider.name} foi adicionado ao sistema.`,
+    });
+  };
+
   const filteredParts = parts.filter(
     (part) =>
       part.serviceOrderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
