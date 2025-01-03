@@ -3,10 +3,10 @@ export type PartStatus = "ontime" | "warning" | "delayed";
 export interface ServiceProvider {
   id: string;
   name: string;
-  contact: string;
-  phone: string;
-  email: string;
-  address: string;
+  contact?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
 }
 
 export interface Part {
@@ -21,4 +21,5 @@ export interface Part {
   estimatedDuration: number;
   status: PartStatus;
   notes?: string;
+  archived?: boolean;
 }

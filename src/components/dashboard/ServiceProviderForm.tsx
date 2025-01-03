@@ -49,7 +49,6 @@ export const ServiceProviderForm = ({ open, onClose, onSubmit }: ServiceProvider
               id="contact"
               value={formData.contact}
               onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-              required
             />
           </div>
           
@@ -59,7 +58,6 @@ export const ServiceProviderForm = ({ open, onClose, onSubmit }: ServiceProvider
               id="phone"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              required
             />
           </div>
           
@@ -70,7 +68,6 @@ export const ServiceProviderForm = ({ open, onClose, onSubmit }: ServiceProvider
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
             />
           </div>
           
@@ -80,7 +77,6 @@ export const ServiceProviderForm = ({ open, onClose, onSubmit }: ServiceProvider
               id="address"
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              required
             />
           </div>
           

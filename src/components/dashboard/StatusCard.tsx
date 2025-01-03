@@ -1,11 +1,13 @@
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Part, PartStatus } from "@/types/parts";
-import { Calendar, Clock, User } from "lucide-react";
+import { Calendar, Clock, User, Building2, Archive } from "lucide-react";
 
 interface StatusCardProps {
   part: Part;
   onClick?: () => void;
+  onArchive?: () => void;
 }
 
 const getStatusColor = (status: PartStatus) => {
@@ -30,7 +32,7 @@ const getStatusText = (status: PartStatus) => {
   }
 };
 
-export const StatusCard = ({ part, onClick }: StatusCardProps) => {
+export const StatusCard = ({ part, onClick, onArchive }: StatusCardProps) => {
   const daysLeft = Math.ceil(
     (part.expectedReturnDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24)
   );
@@ -51,16 +53,35 @@ export const StatusCard = ({ part, onClick }: StatusCardProps) => {
             <User className="w-4 h-4 mr-1" />
             {part.clientName}
           </div>
+          <div className="flex items-center text-sm text-gray-500 mt-1">
+            <Building2 className="w-4 h-4 mr-1" />
+            {part.serviceProvider}
+          </div>
         </div>
-        <span
-          className={cn(
-            "px-3 py-1 rounded-full text-xs font-medium",
-            `bg-status-${part.status}/10`,
-            `text-status-${part.status}`
+        <div className="flex flex-col items-end gap-2">
+          <span
+            className={cn(
+              "px-3 py-1 rounded-full text-xs font-medium",
+              `bg-status-${part.status}/10`,
+              `text-status-${part.status}`
+            )}
+          >
+            {getStatusText(part.status)}
+          </span>
+          {onArchive && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                onArchive();
+              }}
+            >
+              <Archive className="h-4 w-4" />
+            </Button>
           )}
-        >
-          {getStatusText(part.status)}
-        </span>
+        </div>
       </div>
       
       <div className="space-y-2">
