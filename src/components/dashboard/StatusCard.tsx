@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Part, PartStatus } from "@/types/parts";
+import { Calendar, Clock, User } from "lucide-react";
 
 interface StatusCardProps {
   part: Part;
@@ -45,8 +46,11 @@ export const StatusCard = ({ part, onClick }: StatusCardProps) => {
     >
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="font-semibold text-lg">{part.name}</h3>
-          <p className="text-sm text-gray-500">{part.serviceProvider}</p>
+          <h3 className="font-semibold text-lg">OS #{part.serviceOrderNumber}</h3>
+          <div className="flex items-center text-sm text-gray-500 mt-1">
+            <User className="w-4 h-4 mr-1" />
+            {part.clientName}
+          </div>
         </div>
         <span
           className={cn(
@@ -60,16 +64,25 @@ export const StatusCard = ({ part, onClick }: StatusCardProps) => {
       </div>
       
       <div className="space-y-2">
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Saída:</span>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-500 flex items-center">
+            <Calendar className="w-4 h-4 mr-1" />
+            Saída:
+          </span>
           <span>{part.departureDate.toLocaleDateString()}</span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Retorno Previsto:</span>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-500 flex items-center">
+            <Calendar className="w-4 h-4 mr-1" />
+            Retorno Previsto:
+          </span>
           <span>{part.expectedReturnDate.toLocaleDateString()}</span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Tempo Restante:</span>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-500 flex items-center">
+            <Clock className="w-4 h-4 mr-1" />
+            Tempo Restante:
+          </span>
           <span>{daysLeft} dias</span>
         </div>
       </div>

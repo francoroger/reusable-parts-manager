@@ -14,7 +14,8 @@ interface PartFormProps {
 
 export const PartForm = ({ open, onClose, onSubmit }: PartFormProps) => {
   const [formData, setFormData] = useState({
-    name: "",
+    serviceOrderNumber: "",
+    clientName: "",
     description: "",
     serviceProvider: "",
     departureDate: "",
@@ -38,15 +39,25 @@ export const PartForm = ({ open, onClose, onSubmit }: PartFormProps) => {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Adicionar Nova Peça</DialogTitle>
+          <DialogTitle>Nova Ordem de Serviço</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Nome da Peça</Label>
+            <Label htmlFor="serviceOrderNumber">Número da OS</Label>
             <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              id="serviceOrderNumber"
+              value={formData.serviceOrderNumber}
+              onChange={(e) => setFormData({ ...formData, serviceOrderNumber: e.target.value })}
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="clientName">Nome do Cliente</Label>
+            <Input
+              id="clientName"
+              value={formData.clientName}
+              onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
               required
             />
           </div>
