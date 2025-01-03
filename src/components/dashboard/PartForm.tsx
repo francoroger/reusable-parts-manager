@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Part, ServiceProvider } from "@/types/parts";
 import { addDays } from "date-fns";
+import { Search } from "lucide-react";
 
 interface PartFormProps {
   open: boolean;
@@ -24,9 +25,12 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
     serviceProvider: "",
     departureDate: "",
     expectedReturnDate: "",
+    actualReturnDate: "",
     estimatedDuration: "",
     notes: "",
   });
+
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (initialData) {
@@ -37,6 +41,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
         serviceProvider: initialData.serviceProvider,
         departureDate: initialData.departureDate.toISOString().split('T')[0],
         expectedReturnDate: initialData.expectedReturnDate.toISOString().split('T')[0],
+        actualReturnDate: initialData.actualReturnDate ? initialData.actualReturnDate.toISOString().split('T')[0] : "",
         estimatedDuration: initialData.estimatedDuration.toString(),
         notes: initialData.notes || "",
       });
@@ -67,12 +72,18 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
     }
   };
 
+  const filteredProviders = providers.filter(provider =>
+    provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    provider.contact?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
       ...formData,
       departureDate: new Date(formData.departureDate),
       expectedReturnDate: new Date(formData.expectedReturnDate),
+      actualReturnDate: formData.actualReturnDate ? new Date(formData.actualReturnDate) : undefined,
       estimatedDuration: parseInt(formData.estimatedDuration),
     });
     onClose();
@@ -120,21 +131,32 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
           
           <div className="space-y-2">
             <Label htmlFor="serviceProvider">Prestador de Serviço</Label>
-            <Select
-              value={formData.serviceProvider}
-              onValueChange={(value) => setFormData({ ...formData, serviceProvider: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um prestador" />
-              </SelectTrigger>
-              <SelectContent>
-                {providers.map((provider) => (
-                  <SelectItem key={provider.id} value={provider.name}>
-                    {provider.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  className="pl-10"
+                  placeholder="Buscar prestador..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Select
+                value={formData.serviceProvider}
+                onValueChange={(value) => setFormData({ ...formData, serviceProvider: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um prestador" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredProviders.map((provider) => (
+                    <SelectItem key={provider.id} value={provider.name}>
+                      {provider.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
@@ -172,6 +194,18 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
               required
             />
           </div>
+          
+          {initialData && (
+            <div className="space-y-2">
+              <Label htmlFor="actualReturnDate">Data de Retorno Real</Label>
+              <Input
+                id="actualReturnDate"
+                type="date"
+                value={formData.actualReturnDate}
+                onChange={(e) => setFormData({ ...formData, actualReturnDate: e.target.value })}
+              />
+            </div>
+          )}
           
           <div className="space-y-2">
             <Label htmlFor="notes">Observações</Label>
