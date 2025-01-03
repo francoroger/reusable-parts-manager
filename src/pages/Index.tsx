@@ -8,6 +8,7 @@ import { Part, ServiceProvider } from "@/types/parts";
 import { Plus, Search, UserPlus, KanbanSquare, LayoutDashboard } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Index = () => {
   const [parts, setParts] = useState<Part[]>([]);
@@ -16,6 +17,7 @@ const Index = () => {
   const [isAddingPart, setIsAddingPart] = useState(false);
   const [isAddingProvider, setIsAddingProvider] = useState(false);
   const [viewMode, setViewMode] = useState<"dashboard" | "kanban">("dashboard");
+  const [editingPart, setEditingPart] = useState<Part | undefined>();
   const { toast } = useToast();
 
   const calculateStatus = (expectedDate: Date): Part["status"] => {
@@ -41,6 +43,22 @@ const Index = () => {
     });
   };
 
+  const handleEditPart = (updatedPart: Omit<Part, "id" | "status">) => {
+    if (!editingPart) return;
+    
+    const part: Part = {
+      ...updatedPart,
+      id: editingPart.id,
+      status: calculateStatus(updatedPart.expectedReturnDate),
+    };
+    
+    setParts(parts.map(p => p.id === editingPart.id ? part : p));
+    toast({
+      title: "OS atualizada com sucesso",
+      description: `OS #${part.serviceOrderNumber} foi atualizada.`,
+    });
+  };
+
   const handleAddProvider = (newProvider: Omit<ServiceProvider, "id">) => {
     const provider: ServiceProvider = {
       ...newProvider,
@@ -60,6 +78,62 @@ const Index = () => {
     part.serviceProvider.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const renderDashboard = () => {
+    const totalParts = filteredParts.length;
+    const delayedParts = filteredParts.filter(p => p.status === "delayed").length;
+    const warningParts = filteredParts.filter(p => p.status === "warning").length;
+    const ontimeParts = filteredParts.filter(p => p.status === "ontime").length;
+
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total OS</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalParts}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-status-ontime/10">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-status-ontime">No Prazo</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-status-ontime">{ontimeParts}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-status-warning/10">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-status-warning">Próximo ao Prazo</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-status-warning">{warningParts}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-status-delayed/10">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-status-delayed">Atrasados</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-status-delayed">{delayedParts}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredParts.map((part) => (
+            <StatusCard
+              key={part.id}
+              part={part}
+              onClick={() => setEditingPart(part)}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const renderKanbanView = () => {
     const columns = {
       ontime: filteredParts.filter(p => p.status === "ontime"),
@@ -75,7 +149,7 @@ const Index = () => {
           </h3>
           <div className="space-y-4">
             {columns.ontime.map(part => (
-              <StatusCard key={part.id} part={part} />
+              <StatusCard key={part.id} part={part} onClick={() => setEditingPart(part)} />
             ))}
           </div>
         </div>
@@ -86,7 +160,7 @@ const Index = () => {
           </h3>
           <div className="space-y-4">
             {columns.warning.map(part => (
-              <StatusCard key={part.id} part={part} />
+              <StatusCard key={part.id} part={part} onClick={() => setEditingPart(part)} />
             ))}
           </div>
         </div>
@@ -97,7 +171,7 @@ const Index = () => {
           </h3>
           <div className="space-y-4">
             {columns.delayed.map(part => (
-              <StatusCard key={part.id} part={part} />
+              <StatusCard key={part.id} part={part} onClick={() => setEditingPart(part)} />
             ))}
           </div>
         </div>
@@ -152,35 +226,17 @@ const Index = () => {
           </div>
         </div>
 
-        {viewMode === "kanban" ? (
-          renderKanbanView()
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredParts.map((part) => (
-              <StatusCard
-                key={part.id}
-                part={part}
-                onClick={() => {
-                  toast({
-                    title: "Detalhes da OS",
-                    description: `Visualizando detalhes da OS #${part.serviceOrderNumber}`,
-                  });
-                }}
-              />
-            ))}
-            
-            {filteredParts.length === 0 && (
-              <div className="col-span-full text-center py-12 text-gray-500">
-                {searchTerm ? "Nenhuma OS encontrada" : "Nenhuma OS cadastrada"}
-              </div>
-            )}
-          </div>
-        )}
+        {viewMode === "kanban" ? renderKanbanView() : renderDashboard()}
 
         <PartForm
-          open={isAddingPart}
-          onClose={() => setIsAddingPart(false)}
-          onSubmit={handleAddPart}
+          open={isAddingPart || !!editingPart}
+          onClose={() => {
+            setIsAddingPart(false);
+            setEditingPart(undefined);
+          }}
+          onSubmit={editingPart ? handleEditPart : handleAddPart}
+          providers={providers}
+          initialData={editingPart}
         />
 
         <ServiceProviderForm
