@@ -20,10 +20,10 @@ const Index = () => {
   const [editingPart, setEditingPart] = useState<Part | undefined>();
   const { toast } = useToast();
 
-  const calculateStatus = (expectedDate: string): Part["status"] => {
+  const calculateStatus = (expected_return_date: string): Part["status"] => {
     const now = new Date();
     const daysUntilReturn = Math.ceil(
-      (new Date(expectedDate).getTime() - now.getTime()) / (1000 * 3600 * 24)
+      (new Date(expected_return_date).getTime() - now.getTime()) / (1000 * 3600 * 24)
     );
 
     if (daysUntilReturn < 0) return "delayed";
@@ -72,6 +72,14 @@ const Index = () => {
     });
   };
 
+  const handleAddProvider = (provider: ServiceProvider) => {
+    setProviders([...providers, provider]);
+    toast({
+      title: "Prestador adicionado",
+      description: `${provider.name} foi adicionado com sucesso.`,
+    });
+  };
+
   const filteredParts = parts.filter(
     (part) =>
       part.service_order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -83,7 +91,7 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sticky top-0 bg-gray-50 z-10 pb-4">
-          <h1 className="text-3xl font-bold">Controle de Ordens de Serviço</h1>
+          <h1 className="text-3xl font-bold">Controle de OS Externa</h1>
           <div className="flex gap-2 w-full md:w-auto">
             <Button
               onClick={() => setIsAddingProvider(true)}
