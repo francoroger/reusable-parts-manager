@@ -35,22 +35,23 @@ export const ServiceProviderSelect = ({ value, onChange, providers, onAddNew }: 
           />
         </div>
         <div className="flex gap-2">
-          <Select
-            value={value}
-            onValueChange={onChange}
-            className="flex-1"
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione um prestador" />
-            </SelectTrigger>
-            <SelectContent>
-              {filteredProviders.map((provider) => (
-                <SelectItem key={provider.id} value={provider.name}>
-                  {provider.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex-1">
+            <Select
+              value={value}
+              onValueChange={onChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um prestador" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredProviders.map((provider) => (
+                  <SelectItem key={provider.id} value={provider.name}>
+                    {provider.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <Button
             type="button"
             variant="outline"
