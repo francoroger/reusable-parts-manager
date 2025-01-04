@@ -9,6 +9,8 @@ import { addDays } from "date-fns";
 import { ServiceProviderForm } from "./ServiceProviderForm";
 import { ServiceProviderSelect } from "./form/ServiceProviderSelect";
 import { DateFields } from "./form/DateFields";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 
 interface PartFormProps {
   open: boolean;
@@ -32,13 +34,14 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
   });
 
   const [isAddingProvider, setIsAddingProvider] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
 
   useEffect(() => {
     if (initialData) {
       setFormData({
         serviceOrderNumber: initialData.serviceOrderNumber,
         clientName: initialData.clientName,
-        description: initialData.description,
+        description: initialData.description || "",
         serviceProvider: initialData.serviceProvider,
         departureDate: initialData.departureDate.toISOString().split('T')[0],
         expectedReturnDate: initialData.expectedReturnDate.toISOString().split('T')[0],
@@ -73,22 +76,60 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
-      ...formData,
-      departureDate: new Date(formData.departureDate),
-      expectedReturnDate: new Date(formData.expectedReturnDate),
-      actualReturnDate: formData.actualReturnDate ? new Date(formData.actualReturnDate) : undefined,
-      estimatedDuration: parseInt(formData.estimatedDuration),
-    });
-    onClose();
+    try {
+      const partData = {
+        ...formData,
+        departureDate: new Date(formData.departureDate),
+        expectedReturnDate: new Date(formData.expectedReturnDate),
+        actualReturnDate: formData.actualReturnDate ? new Date(formData.actualReturnDate) : null,
+        estimatedDuration: parseInt(formData.estimatedDuration),
+        service_provider_id: selectedProvider?.id,
+      };
+
+      if (initialData?.id) {
+        const { error } = await supabase
+          .from('service_orders')
+          .update(partData)
+          .eq('id', initialData.id);
+
+        if (error) throw error;
+        toast({
+          title: "OS atualizada",
+          description: "A ordem de serviço foi atualizada com sucesso.",
+        });
+      } else {
+        const { data, error } = await supabase
+          .from('service_orders')
+          .insert([partData])
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (data) {
+          onSubmit(data);
+          toast({
+            title: "OS criada",
+            description: "Nova ordem de serviço foi criada com sucesso.",
+          });
+        }
+      }
+      onClose();
+    } catch (error) {
+      console.error('Erro ao salvar OS:', error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao salvar a ordem de serviço.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] max-w-[95vw] w-full overflow-y-auto max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>{initialData ? 'Editar' : 'Nova'} Ordem de Serviço</DialogTitle>
             <DialogDescription>
@@ -127,7 +168,11 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
             
             <ServiceProviderSelect
               value={formData.serviceProvider}
-              onChange={(value) => setFormData({ ...formData, serviceProvider: value })}
+              onChange={(value) => {
+                const provider = providers.find(p => p.name === value);
+                setSelectedProvider(provider || null);
+                setFormData({ ...formData, serviceProvider: value });
+              }}
               providers={providers}
               onAddNew={() => setIsAddingProvider(true)}
             />
@@ -167,7 +212,8 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
         open={isAddingProvider}
         onClose={() => setIsAddingProvider(false)}
         onSubmit={(provider) => {
-          // TODO: Implement provider creation
+          setSelectedProvider(provider);
+          setFormData({ ...formData, serviceProvider: provider.name });
           setIsAddingProvider(false);
         }}
       />
