@@ -7,6 +7,8 @@ export interface ServiceProvider {
   phone?: string;
   email?: string;
   address?: string;
+  created_at?: Date;
+  updated_at?: Date;
 }
 
 export interface Part {
@@ -15,6 +17,7 @@ export interface Part {
   clientName: string;
   description: string;
   serviceProvider: string;
+  serviceProviderId?: string;
   departureDate: Date;
   expectedReturnDate: Date;
   actualReturnDate?: Date;
@@ -22,4 +25,6 @@ export interface Part {
   status: PartStatus;
   notes?: string;
   archived?: boolean;
+  created_at?: Date;
+  updated_at?: Date;
 }

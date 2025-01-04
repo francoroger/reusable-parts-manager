@@ -9,7 +9,98 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      service_orders: {
+        Row: {
+          actual_return_date: string | null
+          archived: boolean | null
+          client_name: string
+          created_at: string
+          departure_date: string
+          description: string | null
+          estimated_duration: number
+          expected_return_date: string
+          id: string
+          notes: string | null
+          service_order_number: string
+          service_provider_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          actual_return_date?: string | null
+          archived?: boolean | null
+          client_name: string
+          created_at?: string
+          departure_date: string
+          description?: string | null
+          estimated_duration: number
+          expected_return_date: string
+          id?: string
+          notes?: string | null
+          service_order_number: string
+          service_provider_id?: string | null
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          actual_return_date?: string | null
+          archived?: boolean | null
+          client_name?: string
+          created_at?: string
+          departure_date?: string
+          description?: string | null
+          estimated_duration?: number
+          expected_return_date?: string
+          id?: string
+          notes?: string | null
+          service_order_number?: string
+          service_provider_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_orders_service_provider_id_fkey"
+            columns: ["service_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_providers: {
+        Row: {
+          address: string | null
+          contact: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          contact?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          contact?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

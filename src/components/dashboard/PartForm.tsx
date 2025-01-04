@@ -4,10 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Part, ServiceProvider } from "@/types/parts";
 import { addDays } from "date-fns";
-import { Search } from "lucide-react";
+import { ServiceProviderForm } from "./ServiceProviderForm";
+import { ServiceProviderSelect } from "./form/ServiceProviderSelect";
+import { DateFields } from "./form/DateFields";
 
 interface PartFormProps {
   open: boolean;
@@ -30,7 +31,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
     notes: "",
   });
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [isAddingProvider, setIsAddingProvider] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -72,11 +73,6 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
     }
   };
 
-  const filteredProviders = providers.filter(provider =>
-    provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    provider.contact?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
@@ -90,140 +86,91 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>{initialData ? 'Editar' : 'Nova'} Ordem de Serviço</DialogTitle>
-          <DialogDescription>
-            Preencha os dados da ordem de serviço. As datas serão calculadas automaticamente.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="serviceOrderNumber">Número da OS</Label>
-            <Input
-              id="serviceOrderNumber"
-              value={formData.serviceOrderNumber}
-              onChange={(e) => setFormData({ ...formData, serviceOrderNumber: e.target.value })}
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="clientName">Nome do Cliente</Label>
-            <Input
-              id="clientName"
-              value={formData.clientName}
-              onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description">Descrição</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="serviceProvider">Prestador de Serviço</Label>
+    <>
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{initialData ? 'Editar' : 'Nova'} Ordem de Serviço</DialogTitle>
+            <DialogDescription>
+              Preencha os dados da ordem de serviço. As datas serão calculadas automaticamente.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  className="pl-10"
-                  placeholder="Buscar prestador..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <Select
-                value={formData.serviceProvider}
-                onValueChange={(value) => setFormData({ ...formData, serviceProvider: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um prestador" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredProviders.map((provider) => (
-                    <SelectItem key={provider.id} value={provider.name}>
-                      {provider.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="departureDate">Data de Saída</Label>
+              <Label htmlFor="serviceOrderNumber">Número da OS</Label>
               <Input
-                id="departureDate"
-                type="date"
-                value={formData.departureDate}
-                onChange={(e) => setFormData({ ...formData, departureDate: e.target.value })}
+                id="serviceOrderNumber"
+                value={formData.serviceOrderNumber}
+                onChange={(e) => setFormData({ ...formData, serviceOrderNumber: e.target.value })}
                 required
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="expectedReturnDate">Previsão de Retorno</Label>
+              <Label htmlFor="clientName">Nome do Cliente</Label>
               <Input
-                id="expectedReturnDate"
-                type="date"
-                value={formData.expectedReturnDate}
-                onChange={(e) => handleExpectedDateChange(e.target.value)}
+                id="clientName"
+                value={formData.clientName}
+                onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
                 required
               />
             </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="estimatedDuration">Tempo Previsto (dias)</Label>
-            <Input
-              id="estimatedDuration"
-              type="number"
-              min="1"
-              value={formData.estimatedDuration}
-              onChange={(e) => handleDurationChange(e.target.value)}
-              required
-            />
-          </div>
-          
-          {initialData && (
+            
             <div className="space-y-2">
-              <Label htmlFor="actualReturnDate">Data de Retorno Real</Label>
-              <Input
-                id="actualReturnDate"
-                type="date"
-                value={formData.actualReturnDate}
-                onChange={(e) => setFormData({ ...formData, actualReturnDate: e.target.value })}
+              <Label htmlFor="description">Descrição</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
             </div>
-          )}
-          
-          <div className="space-y-2">
-            <Label htmlFor="notes">Observações</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            
+            <ServiceProviderSelect
+              value={formData.serviceProvider}
+              onChange={(value) => setFormData({ ...formData, serviceProvider: value })}
+              providers={providers}
+              onAddNew={() => setIsAddingProvider(true)}
             />
-          </div>
-          
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" type="button" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button type="submit">{initialData ? 'Salvar' : 'Adicionar'}</Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+            
+            <DateFields
+              departureDate={formData.departureDate}
+              expectedReturnDate={formData.expectedReturnDate}
+              actualReturnDate={formData.actualReturnDate}
+              estimatedDuration={formData.estimatedDuration}
+              onDepartureChange={(value) => setFormData({ ...formData, departureDate: value })}
+              onExpectedReturnChange={handleExpectedDateChange}
+              onActualReturnChange={(value) => setFormData({ ...formData, actualReturnDate: value })}
+              onDurationChange={handleDurationChange}
+              showActualReturn={!!initialData}
+            />
+            
+            <div className="space-y-2">
+              <Label htmlFor="notes">Observações</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              />
+            </div>
+            
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" type="button" onClick={onClose}>
+                Cancelar
+              </Button>
+              <Button type="submit">{initialData ? 'Salvar' : 'Adicionar'}</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <ServiceProviderForm
+        open={isAddingProvider}
+        onClose={() => setIsAddingProvider(false)}
+        onSubmit={(provider) => {
+          // TODO: Implement provider creation
+          setIsAddingProvider(false);
+        }}
+      />
+    </>
   );
 };
