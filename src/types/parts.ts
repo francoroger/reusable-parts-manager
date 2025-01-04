@@ -3,28 +3,28 @@ export type PartStatus = "ontime" | "warning" | "delayed";
 export interface ServiceProvider {
   id: string;
   name: string;
-  contact?: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  created_at?: Date;
-  updated_at?: Date;
+  contact?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Part {
   id: string;
-  serviceOrderNumber: string;
-  clientName: string;
-  description: string;
-  serviceProvider: string;
-  serviceProviderId?: string;
-  departureDate: Date;
-  expectedReturnDate: Date;
-  actualReturnDate?: Date;
-  estimatedDuration: number;
+  service_order_number: string;
+  client_name: string;
+  description?: string | null;
+  service_provider_id?: string | null;
+  service_provider?: string;
+  departure_date: string;
+  expected_return_date: string;
+  actual_return_date?: string | null;
+  estimated_duration: number;
   status: PartStatus;
-  notes?: string;
+  notes?: string | null;
   archived?: boolean;
-  created_at?: Date;
-  updated_at?: Date;
+  created_at?: string;
+  updated_at?: string;
 }

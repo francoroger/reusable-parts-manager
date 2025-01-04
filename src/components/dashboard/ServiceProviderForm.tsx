@@ -66,7 +66,17 @@ export const ServiceProviderForm = ({ open, onClose, onSubmit, initialData }: Se
 
         if (error) throw error;
         if (data) {
-          onSubmit(data);
+          const provider: ServiceProvider = {
+            id: data.id,
+            name: data.name,
+            contact: data.contact,
+            phone: data.phone,
+            email: data.email,
+            address: data.address,
+            created_at: data.created_at,
+            updated_at: data.updated_at,
+          };
+          onSubmit(provider);
           toast({
             title: "Prestador cadastrado",
             description: "Novo prestador foi adicionado com sucesso.",

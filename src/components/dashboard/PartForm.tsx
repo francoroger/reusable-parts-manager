@@ -39,14 +39,14 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
   useEffect(() => {
     if (initialData) {
       setFormData({
-        serviceOrderNumber: initialData.serviceOrderNumber,
-        clientName: initialData.clientName,
+        serviceOrderNumber: initialData.service_order_number,
+        clientName: initialData.client_name,
         description: initialData.description || "",
-        serviceProvider: initialData.serviceProvider,
-        departureDate: initialData.departureDate.toISOString().split('T')[0],
-        expectedReturnDate: initialData.expectedReturnDate.toISOString().split('T')[0],
-        actualReturnDate: initialData.actualReturnDate ? initialData.actualReturnDate.toISOString().split('T')[0] : "",
-        estimatedDuration: initialData.estimatedDuration.toString(),
+        serviceProvider: initialData.service_provider || "",
+        departureDate: initialData.departure_date.split('T')[0],
+        expectedReturnDate: initialData.expected_return_date.split('T')[0],
+        actualReturnDate: initialData.actual_return_date ? initialData.actual_return_date.split('T')[0] : "",
+        estimatedDuration: initialData.estimated_duration.toString(),
         notes: initialData.notes || "",
       });
     }
@@ -80,12 +80,15 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
     e.preventDefault();
     try {
       const partData = {
-        ...formData,
-        departureDate: new Date(formData.departureDate),
-        expectedReturnDate: new Date(formData.expectedReturnDate),
-        actualReturnDate: formData.actualReturnDate ? new Date(formData.actualReturnDate) : null,
-        estimatedDuration: parseInt(formData.estimatedDuration),
+        service_order_number: formData.serviceOrderNumber,
+        client_name: formData.clientName,
+        description: formData.description,
         service_provider_id: selectedProvider?.id,
+        departure_date: formData.departureDate,
+        expected_return_date: formData.expectedReturnDate,
+        actual_return_date: formData.actualReturnDate || null,
+        estimated_duration: parseInt(formData.estimatedDuration),
+        notes: formData.notes,
       };
 
       if (initialData?.id) {
@@ -108,7 +111,19 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
 
         if (error) throw error;
         if (data) {
-          onSubmit(data);
+          const transformedData: Omit<Part, "id" | "status"> = {
+            service_order_number: data.service_order_number,
+            client_name: data.client_name,
+            description: data.description,
+            service_provider_id: data.service_provider_id,
+            service_provider: selectedProvider?.name || "",
+            departure_date: data.departure_date,
+            expected_return_date: data.expected_return_date,
+            actual_return_date: data.actual_return_date,
+            estimated_duration: data.estimated_duration,
+            notes: data.notes,
+          };
+          onSubmit(transformedData);
           toast({
             title: "OS criada",
             description: "Nova ordem de serviço foi criada com sucesso.",
