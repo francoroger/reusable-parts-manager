@@ -45,7 +45,7 @@ const getStatusText = (status: PartStatus) => {
 
 export const StatusCard = ({ part, onClick, onArchive }: StatusCardProps) => {
   const daysLeft = Math.ceil(
-    (part.expectedReturnDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24)
+    (new Date(part.expected_return_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24)
   );
 
   return (
@@ -59,14 +59,14 @@ export const StatusCard = ({ part, onClick, onArchive }: StatusCardProps) => {
     >
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="font-semibold text-lg">OS #{part.serviceOrderNumber}</h3>
+          <h3 className="font-semibold text-lg">OS #{part.service_order_number}</h3>
           <div className="flex items-center text-sm text-gray-500 mt-1">
             <User className="w-4 h-4 mr-1" />
-            {part.clientName}
+            {part.client_name}
           </div>
           <div className="flex items-center text-sm text-gray-500 mt-1">
             <Building2 className="w-4 h-4 mr-1" />
-            {part.serviceProvider}
+            {part.service_provider}
           </div>
         </div>
         <div className="flex flex-col items-end gap-2">
@@ -131,22 +131,22 @@ export const StatusCard = ({ part, onClick, onArchive }: StatusCardProps) => {
             <Calendar className="w-4 h-4 mr-1" />
             Saída:
           </span>
-          <span>{part.departureDate.toLocaleDateString()}</span>
+          <span>{new Date(part.departure_date).toLocaleDateString()}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-500 flex items-center">
             <Calendar className="w-4 h-4 mr-1" />
             Retorno Previsto:
           </span>
-          <span>{part.expectedReturnDate.toLocaleDateString()}</span>
+          <span>{new Date(part.expected_return_date).toLocaleDateString()}</span>
         </div>
-        {part.actualReturnDate && (
+        {part.actual_return_date && (
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-500 flex items-center">
               <Calendar className="w-4 h-4 mr-1" />
               Retorno Real:
             </span>
-            <span>{part.actualReturnDate.toLocaleDateString()}</span>
+            <span>{new Date(part.actual_return_date).toLocaleDateString()}</span>
           </div>
         )}
         <div className="flex items-center justify-between text-sm">

@@ -20,10 +20,10 @@ const Index = () => {
   const [editingPart, setEditingPart] = useState<Part | undefined>();
   const { toast } = useToast();
 
-  const calculateStatus = (expectedDate: Date): Part["status"] => {
+  const calculateStatus = (expectedDate: string): Part["status"] => {
     const now = new Date();
     const daysUntilReturn = Math.ceil(
-      (expectedDate.getTime() - now.getTime()) / (1000 * 3600 * 24)
+      (new Date(expectedDate).getTime() - now.getTime()) / (1000 * 3600 * 24)
     );
 
     if (daysUntilReturn < 0) return "delayed";
@@ -35,14 +35,14 @@ const Index = () => {
     const part: Part = {
       ...newPart,
       id: Date.now().toString(),
-      status: calculateStatus(newPart.expectedReturnDate),
+      status: calculateStatus(newPart.expected_return_date),
       archived: false,
     };
 
     setParts([...parts, part]);
     toast({
       title: "OS adicionada com sucesso",
-      description: `OS #${part.serviceOrderNumber} foi adicionada ao sistema.`,
+      description: `OS #${part.service_order_number} foi adicionada ao sistema.`,
     });
   };
 
@@ -52,14 +52,14 @@ const Index = () => {
     const part: Part = {
       ...updatedPart,
       id: editingPart.id,
-      status: calculateStatus(updatedPart.expectedReturnDate),
+      status: calculateStatus(updatedPart.expected_return_date),
       archived: editingPart.archived || false,
     };
 
     setParts(parts.map((p) => (p.id === editingPart.id ? part : p)));
     toast({
       title: "OS atualizada com sucesso",
-      description: `OS #${part.serviceOrderNumber} foi atualizada.`,
+      description: `OS #${part.service_order_number} foi atualizada.`,
     });
   };
 
@@ -68,28 +68,15 @@ const Index = () => {
     setParts(parts.map((p) => (p.id === part.id ? updatedPart : p)));
     toast({
       title: part.archived ? "OS desarquivada" : "OS arquivada",
-      description: `OS #${part.serviceOrderNumber} foi ${part.archived ? 'desarquivada' : 'arquivada'} com sucesso.`,
-    });
-  };
-
-  const handleAddProvider = (newProvider: Omit<ServiceProvider, "id">) => {
-    const provider: ServiceProvider = {
-      ...newProvider,
-      id: Date.now().toString(),
-    };
-
-    setProviders([...providers, provider]);
-    toast({
-      title: "Prestador cadastrado com sucesso",
-      description: `${provider.name} foi adicionado ao sistema.`,
+      description: `OS #${part.service_order_number} foi ${part.archived ? 'desarquivada' : 'arquivada'} com sucesso.`,
     });
   };
 
   const filteredParts = parts.filter(
     (part) =>
-      part.serviceOrderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      part.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      part.serviceProvider.toLowerCase().includes(searchTerm.toLowerCase())
+      part.service_order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      part.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (part.service_provider || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

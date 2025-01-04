@@ -34,9 +34,9 @@ export const DashboardView = ({ parts }: DashboardViewProps) => {
   const timelineData = parts
     .filter((p) => !p.archived)
     .map((part) => ({
-      name: `OS #${part.serviceOrderNumber}`,
+      name: `OS #${part.service_order_number}`,
       dias: Math.ceil(
-        (part.expectedReturnDate.getTime() - new Date().getTime()) /
+        (new Date(part.expected_return_date).getTime() - new Date().getTime()) /
           (1000 * 3600 * 24)
       ),
     }))
