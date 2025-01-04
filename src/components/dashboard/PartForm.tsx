@@ -52,6 +52,17 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
     }
   }, [initialData]);
 
+  const calculateStatus = (expected_return_date: string): Part["status"] => {
+    const now = new Date();
+    const daysUntilReturn = Math.ceil(
+      (new Date(expected_return_date).getTime() - now.getTime()) / (1000 * 3600 * 24)
+    );
+
+    if (daysUntilReturn < 0) return "delayed";
+    if (daysUntilReturn <= 2) return "warning";
+    return "ontime";
+  };
+
   const handleDurationChange = (duration: string) => {
     if (formData.departureDate && duration) {
       const newExpectedDate = addDays(new Date(formData.departureDate), parseInt(duration));
@@ -89,6 +100,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
         actual_return_date: formData.actualReturnDate || null,
         estimated_duration: parseInt(formData.estimatedDuration),
         notes: formData.notes,
+        status: calculateStatus(formData.expectedReturnDate), // Add status calculation
       };
 
       if (initialData?.id) {
