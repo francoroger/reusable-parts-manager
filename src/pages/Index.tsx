@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DashboardView } from "@/components/dashboard/DashboardView";
 import { PartsGrid } from "@/components/dashboard/PartsGrid";
 import { KanbanBoard } from "@/components/dashboard/KanbanBoard";
+import { ServiceProviderList } from "@/components/dashboard/ServiceProviderList";
 
 const Index = () => {
   const [parts, setParts] = useState<Part[]>([]);
@@ -80,6 +81,22 @@ const Index = () => {
     });
   };
 
+  const handleUpdateProvider = (updatedProvider: ServiceProvider) => {
+    setProviders(providers.map(p => p.id === updatedProvider.id ? updatedProvider : p));
+    toast({
+      title: "Prestador atualizado",
+      description: `${updatedProvider.name} foi atualizado com sucesso.`,
+    });
+  };
+
+  const handleDeleteProvider = (providerId: string) => {
+    setProviders(providers.filter(p => p.id !== providerId));
+    toast({
+      title: "Prestador removido",
+      description: "O prestador foi removido com sucesso.",
+    });
+  };
+
   const filteredParts = parts.filter(
     (part) =>
       part.service_order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -128,6 +145,7 @@ const Index = () => {
               <TabsTrigger value="kanban">Kanban</TabsTrigger>
               <TabsTrigger value="active">OS Ativas</TabsTrigger>
               <TabsTrigger value="archived">Arquivadas</TabsTrigger>
+              <TabsTrigger value="providers">Prestadores</TabsTrigger>
             </TabsList>
 
             <TabsContent value="dashboard" className="space-y-6">
@@ -156,6 +174,14 @@ const Index = () => {
                 onEditPart={setEditingPart}
                 onArchivePart={handleArchivePart}
                 showArchived={true}
+              />
+            </TabsContent>
+
+            <TabsContent value="providers" className="space-y-6">
+              <ServiceProviderList
+                providers={providers}
+                onEdit={handleUpdateProvider}
+                onDelete={handleDeleteProvider}
               />
             </TabsContent>
           </Tabs>

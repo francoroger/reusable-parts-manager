@@ -44,7 +44,7 @@ export const ServiceProviderForm = ({ open, onClose, onSubmit, initialData }: Se
         address: "",
       });
     }
-  }, [initialData]);
+  }, [initialData, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +56,15 @@ export const ServiceProviderForm = ({ open, onClose, onSubmit, initialData }: Se
           .eq('id', initialData.id);
 
         if (error) throw error;
+        
+        const updatedProvider: ServiceProvider = {
+          ...formData,
+          id: initialData.id,
+          created_at: initialData.created_at,
+          updated_at: new Date().toISOString(),
+        };
+        
+        onSubmit(updatedProvider);
         toast({
           title: "Prestador atualizado",
           description: "As informações foram atualizadas com sucesso.",

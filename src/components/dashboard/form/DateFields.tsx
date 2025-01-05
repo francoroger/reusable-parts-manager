@@ -24,6 +24,10 @@ export const DateFields = ({
   onDurationChange,
   showActualReturn,
 }: DateFieldsProps) => {
+  // Set today as default for departure date if not provided
+  const today = new Date().toISOString().split('T')[0];
+  const defaultDepartureDate = departureDate || today;
+
   return (
     <>
       <div className="grid grid-cols-2 gap-4">
@@ -32,7 +36,7 @@ export const DateFields = ({
           <Input
             id="departureDate"
             type="date"
-            value={departureDate}
+            value={defaultDepartureDate}
             onChange={(e) => onDepartureChange(e.target.value)}
             required
           />
