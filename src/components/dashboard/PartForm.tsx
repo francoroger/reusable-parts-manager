@@ -5,10 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Part, ServiceProvider } from "@/types/parts";
-import { addDays } from "date-fns";
 import { ServiceProviderForm } from "./ServiceProviderForm";
 import { ServiceProviderSelect } from "./form/ServiceProviderSelect";
-import { DateFields } from "./form/DateFields";
+import { DateCalculator } from "./form/DateCalculator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
@@ -151,6 +150,15 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
     }
   };
 
+  const handleDatesChange = (dates: { departureDate: string; expectedReturnDate: string; estimatedDuration: string }) => {
+    setFormData(prev => ({
+      ...prev,
+      departureDate: dates.departureDate,
+      expectedReturnDate: dates.expectedReturnDate,
+      estimatedDuration: dates.estimatedDuration,
+    }));
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
@@ -202,17 +210,27 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
               onAddNew={() => setIsAddingProvider(true)}
             />
             
-            <DateFields
-              departureDate={formData.departureDate}
-              expectedReturnDate={formData.expectedReturnDate}
-              actualReturnDate={formData.actualReturnDate}
-              estimatedDuration={formData.estimatedDuration}
-              onDepartureChange={(value) => setFormData({ ...formData, departureDate: value })}
-              onExpectedReturnChange={(value) => setFormData({ ...formData, expectedReturnDate: value })}
-              onActualReturnChange={(value) => setFormData({ ...formData, actualReturnDate: value })}
-              onDurationChange={(value) => setFormData({ ...formData, estimatedDuration: value })}
-              showActualReturn={!!initialData}
+            <DateCalculator
+              onDatesChange={handleDatesChange}
+              initialDates={{
+                departureDate: formData.departureDate,
+                expectedReturnDate: formData.expectedReturnDate,
+                estimatedDuration: formData.estimatedDuration,
+              }}
             />
+            
+            {initialData && (
+              <div className="space-y-2">
+                <Label htmlFor="actualReturnDate">Data de Retorno Real</Label>
+                <Input
+                  id="actualReturnDate"
+                  type="date"
+                  value={formData.actualReturnDate}
+                  onChange={(e) => setFormData({ ...formData, actualReturnDate: e.target.value })}
+                  min={formData.departureDate}
+                />
+              </div>
+            )}
             
             <div className="space-y-2">
               <Label htmlFor="notes">Observações</Label>
