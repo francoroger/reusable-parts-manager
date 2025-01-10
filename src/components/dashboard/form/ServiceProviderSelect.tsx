@@ -26,7 +26,7 @@ export const ServiceProviderSelect = ({ value, onChange, providers, onAddNew }: 
             </SelectTrigger>
             <SelectContent>
               {providers.map((provider) => (
-                <SelectItem key={provider.id} value={provider.name}>
+                <SelectItem key={provider.id} value={provider.id}>
                   {provider.name}
                 </SelectItem>
               ))}

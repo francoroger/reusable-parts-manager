@@ -25,9 +25,7 @@ export const DateFields = ({
   onDurationChange,
   showActualReturn,
 }: DateFieldsProps) => {
-  // Set today as default for departure date if not provided
   const today = new Date().toISOString().split('T')[0];
-  const defaultDepartureDate = departureDate || today;
 
   const handleDepartureChange = (value: string) => {
     onDepartureChange(value);
@@ -38,10 +36,21 @@ export const DateFields = ({
   };
 
   const handleDurationChange = (value: string) => {
+    if (!value) return;
     onDurationChange(value);
-    if (value && departureDate) {
+    if (departureDate) {
       const newExpectedDate = addDays(new Date(departureDate), parseInt(value));
       onExpectedReturnChange(newExpectedDate.toISOString().split('T')[0]);
+    }
+  };
+
+  const handleExpectedDateChange = (value: string) => {
+    onExpectedReturnChange(value);
+    if (departureDate && value) {
+      const days = Math.ceil(
+        (new Date(value).getTime() - new Date(departureDate).getTime()) / (1000 * 3600 * 24)
+      );
+      onDurationChange(days.toString());
     }
   };
 
@@ -53,7 +62,7 @@ export const DateFields = ({
           <Input
             id="departureDate"
             type="date"
-            value={defaultDepartureDate}
+            value={departureDate || today}
             onChange={(e) => handleDepartureChange(e.target.value)}
             required
           />
@@ -65,7 +74,8 @@ export const DateFields = ({
             id="expectedReturnDate"
             type="date"
             value={expectedReturnDate}
-            onChange={(e) => onExpectedReturnChange(e.target.value)}
+            onChange={(e) => handleExpectedDateChange(e.target.value)}
+            min={departureDate || today}
             required
           />
         </div>
@@ -91,6 +101,7 @@ export const DateFields = ({
             type="date"
             value={actualReturnDate}
             onChange={(e) => onActualReturnChange(e.target.value)}
+            min={departureDate || today}
           />
         </div>
       )}

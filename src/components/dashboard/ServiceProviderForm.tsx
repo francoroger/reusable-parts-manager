@@ -24,6 +24,7 @@ export const ServiceProviderForm = ({ open, onClose, onSubmit, initialData }: Se
     address: "",
   });
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -47,6 +48,9 @@ export const ServiceProviderForm = ({ open, onClose, onSubmit, initialData }: Se
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
     try {
       if (initialData?.id) {
         const { error } = await supabase
@@ -102,6 +106,8 @@ export const ServiceProviderForm = ({ open, onClose, onSubmit, initialData }: Se
         description: "Ocorreu um erro ao salvar as informações.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -192,7 +198,9 @@ export const ServiceProviderForm = ({ open, onClose, onSubmit, initialData }: Se
                 <Button variant="outline" type="button" onClick={onClose}>
                   Cancelar
                 </Button>
-                <Button type="submit">{initialData ? 'Salvar' : 'Cadastrar'}</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {initialData ? 'Salvar' : 'Cadastrar'}
+                </Button>
               </div>
             </div>
           </form>
