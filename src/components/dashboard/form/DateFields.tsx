@@ -2,6 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { addDays, differenceInDays } from "date-fns";
 import { useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
 
 interface DateFieldsProps {
   departureDate: string;
@@ -36,13 +37,28 @@ export const DateFields = ({
 
   // Handle departure date change
   const handleDepartureChange = (value: string) => {
+    const selectedDate = new Date(value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      toast({
+        title: "Data inválida",
+        description: "A data de saída não pode ser anterior a hoje.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     onDepartureChange(value);
     
     // If we have an estimated duration, update the expected return date
     if (estimatedDuration && !isNaN(parseInt(estimatedDuration))) {
       const duration = parseInt(estimatedDuration);
-      const newExpectedDate = addDays(new Date(value), duration);
-      onExpectedReturnChange(newExpectedDate.toISOString().split('T')[0]);
+      if (duration > 0) {
+        const newExpectedDate = addDays(new Date(value), duration);
+        onExpectedReturnChange(newExpectedDate.toISOString().split('T')[0]);
+      }
     }
   };
 
@@ -51,7 +67,16 @@ export const DateFields = ({
     const duration = parseInt(value);
     
     // Only proceed if we have a valid number
-    if (!isNaN(duration) && duration >= 0) {
+    if (!isNaN(duration)) {
+      if (duration < 1) {
+        toast({
+          title: "Duração inválida",
+          description: "O tempo previsto deve ser de pelo menos 1 dia.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       onDurationChange(value);
       
       // Calculate new expected return date based on duration
@@ -64,22 +89,36 @@ export const DateFields = ({
 
   // Handle expected return date change
   const handleExpectedDateChange = (value: string) => {
+    const selectedDate = new Date(value);
+    const departureDateTime = new Date(departureDate);
+
+    if (selectedDate <= departureDateTime) {
+      toast({
+        title: "Data inválida",
+        description: "A data de retorno deve ser posterior à data de saída.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     onExpectedReturnChange(value);
     
     // Calculate new duration based on the selected return date
     if (departureDate && value) {
-      const days = differenceInDays(new Date(value), new Date(departureDate));
-      if (days >= 0) {
+      const days = differenceInDays(selectedDate, departureDateTime);
+      if (days >= 1) {
         onDurationChange(days.toString());
       }
     }
   };
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="departureDate">Data de Saída</Label>
+          <Label htmlFor="departureDate" className="text-sm font-medium">
+            Data de Saída
+          </Label>
           <Input
             id="departureDate"
             type="date"
@@ -87,11 +126,14 @@ export const DateFields = ({
             onChange={(e) => handleDepartureChange(e.target.value)}
             min={new Date().toISOString().split('T')[0]}
             required
+            className="w-full"
           />
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="expectedReturnDate">Previsão de Retorno</Label>
+          <Label htmlFor="expectedReturnDate" className="text-sm font-medium">
+            Previsão de Retorno
+          </Label>
           <Input
             id="expectedReturnDate"
             type="date"
@@ -99,12 +141,13 @@ export const DateFields = ({
             onChange={(e) => handleExpectedDateChange(e.target.value)}
             min={departureDate}
             required
+            className="w-full"
           />
         </div>
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="estimatedDuration">
+        <Label htmlFor="estimatedDuration" className="text-sm font-medium">
           Tempo Previsto (dias)
         </Label>
         <Input
@@ -115,18 +158,22 @@ export const DateFields = ({
           onChange={(e) => handleDurationChange(e.target.value)}
           required
           placeholder="Digite o número de dias"
+          className="w-full"
         />
       </div>
       
       {showActualReturn && onActualReturnChange && (
         <div className="space-y-2">
-          <Label htmlFor="actualReturnDate">Data de Retorno Real</Label>
+          <Label htmlFor="actualReturnDate" className="text-sm font-medium">
+            Data de Retorno Real
+          </Label>
           <Input
             id="actualReturnDate"
             type="date"
             value={actualReturnDate}
             onChange={(e) => onActualReturnChange(e.target.value)}
             min={departureDate}
+            className="w-full"
           />
         </div>
       )}
