@@ -12,21 +12,13 @@ import { DateFields } from "./form/DateFields";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
-interface PartFormProps {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: (part: Omit<Part, "id" | "status">) => void;
-  providers: ServiceProvider[];
-  initialData?: Part;
-}
-
 export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: PartFormProps) => {
   const [formData, setFormData] = useState({
     serviceOrderNumber: "",
     clientName: "",
     description: "",
     serviceProvider: "",
-    departureDate: "",
+    departureDate: new Date().toISOString().split('T')[0],
     expectedReturnDate: "",
     actualReturnDate: "",
     estimatedDuration: "",
@@ -35,6 +27,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
 
   const [isAddingProvider, setIsAddingProvider] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -42,15 +35,31 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
         serviceOrderNumber: initialData.service_order_number,
         clientName: initialData.client_name,
         description: initialData.description || "",
-        serviceProvider: initialData.service_provider || "",
+        serviceProvider: initialData.service_provider_id || "",
         departureDate: initialData.departure_date.split('T')[0],
         expectedReturnDate: initialData.expected_return_date.split('T')[0],
         actualReturnDate: initialData.actual_return_date ? initialData.actual_return_date.split('T')[0] : "",
         estimatedDuration: initialData.estimated_duration.toString(),
         notes: initialData.notes || "",
       });
+      const provider = providers.find(p => p.id === initialData.service_provider_id);
+      setSelectedProvider(provider || null);
+    } else {
+      const today = new Date().toISOString().split('T')[0];
+      setFormData({
+        serviceOrderNumber: "",
+        clientName: "",
+        description: "",
+        serviceProvider: "",
+        departureDate: today,
+        expectedReturnDate: "",
+        actualReturnDate: "",
+        estimatedDuration: "",
+        notes: "",
+      });
+      setSelectedProvider(null);
     }
-  }, [initialData]);
+  }, [initialData, providers, open]);
 
   const calculateStatus = (expected_return_date: string): Part["status"] => {
     const now = new Date();
@@ -63,32 +72,11 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
     return "ontime";
   };
 
-  const handleDurationChange = (duration: string) => {
-    if (formData.departureDate && duration) {
-      const newExpectedDate = addDays(new Date(formData.departureDate), parseInt(duration));
-      setFormData({
-        ...formData,
-        estimatedDuration: duration,
-        expectedReturnDate: newExpectedDate.toISOString().split('T')[0],
-      });
-    }
-  };
-
-  const handleExpectedDateChange = (date: string) => {
-    if (formData.departureDate && date) {
-      const days = Math.ceil(
-        (new Date(date).getTime() - new Date(formData.departureDate).getTime()) / (1000 * 3600 * 24)
-      );
-      setFormData({
-        ...formData,
-        expectedReturnDate: date,
-        estimatedDuration: days.toString(),
-      });
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
     try {
       const partData = {
         service_order_number: formData.serviceOrderNumber,
@@ -100,7 +88,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
         actual_return_date: formData.actualReturnDate || null,
         estimated_duration: parseInt(formData.estimatedDuration),
         notes: formData.notes,
-        status: calculateStatus(formData.expectedReturnDate), // Add status calculation
+        status: calculateStatus(formData.expectedReturnDate),
       };
 
       if (initialData?.id) {
@@ -150,6 +138,8 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
         description: "Ocorreu um erro ao salvar a ordem de serviço.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -196,7 +186,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
             <ServiceProviderSelect
               value={formData.serviceProvider}
               onChange={(value) => {
-                const provider = providers.find(p => p.name === value);
+                const provider = providers.find(p => p.id === value);
                 setSelectedProvider(provider || null);
                 setFormData({ ...formData, serviceProvider: value });
               }}
@@ -210,9 +200,9 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
               actualReturnDate={formData.actualReturnDate}
               estimatedDuration={formData.estimatedDuration}
               onDepartureChange={(value) => setFormData({ ...formData, departureDate: value })}
-              onExpectedReturnChange={handleExpectedDateChange}
+              onExpectedReturnChange={(value) => setFormData({ ...formData, expectedReturnDate: value })}
               onActualReturnChange={(value) => setFormData({ ...formData, actualReturnDate: value })}
-              onDurationChange={handleDurationChange}
+              onDurationChange={(value) => setFormData({ ...formData, estimatedDuration: value })}
               showActualReturn={!!initialData}
             />
             
@@ -226,10 +216,12 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
             </div>
             
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" type="button" onClick={onClose}>
+              <Button variant="outline" type="button" onClick={onClose} disabled={isSubmitting}>
                 Cancelar
               </Button>
-              <Button type="submit">{initialData ? 'Salvar' : 'Adicionar'}</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {initialData ? 'Salvar' : 'Adicionar'}
+              </Button>
             </div>
           </form>
         </DialogContent>
@@ -240,7 +232,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
         onClose={() => setIsAddingProvider(false)}
         onSubmit={(provider) => {
           setSelectedProvider(provider);
-          setFormData({ ...formData, serviceProvider: provider.name });
+          setFormData({ ...formData, serviceProvider: provider.id });
           setIsAddingProvider(false);
         }}
       />

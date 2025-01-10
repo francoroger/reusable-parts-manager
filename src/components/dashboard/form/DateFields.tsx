@@ -36,10 +36,12 @@ export const DateFields = ({
   };
 
   const handleDurationChange = (value: string) => {
-    if (!value) return;
+    const duration = parseInt(value);
+    if (isNaN(duration)) return;
+    
     onDurationChange(value);
     if (departureDate) {
-      const newExpectedDate = addDays(new Date(departureDate), parseInt(value));
+      const newExpectedDate = addDays(new Date(departureDate), duration);
       onExpectedReturnChange(newExpectedDate.toISOString().split('T')[0]);
     }
   };
