@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { addDays } from "date-fns";
+import { addDays, differenceInDays } from "date-fns";
+import { useEffect } from "react";
 
 interface DateFieldsProps {
   departureDate: string;
@@ -25,47 +26,66 @@ export const DateFields = ({
   onDurationChange,
   showActualReturn,
 }: DateFieldsProps) => {
-  const today = new Date().toISOString().split('T')[0];
+  // Set default departure date to today if not provided
+  useEffect(() => {
+    if (!departureDate) {
+      const today = new Date().toISOString().split('T')[0];
+      onDepartureChange(today);
+    }
+  }, [departureDate, onDepartureChange]);
 
+  // Handle departure date change
   const handleDepartureChange = (value: string) => {
     onDepartureChange(value);
-    if (estimatedDuration) {
-      const newExpectedDate = addDays(new Date(value), parseInt(estimatedDuration));
+    
+    // If we have an estimated duration, update the expected return date
+    if (estimatedDuration && !isNaN(parseInt(estimatedDuration))) {
+      const duration = parseInt(estimatedDuration);
+      const newExpectedDate = addDays(new Date(value), duration);
       onExpectedReturnChange(newExpectedDate.toISOString().split('T')[0]);
     }
   };
 
+  // Handle duration change
   const handleDurationChange = (value: string) => {
     const duration = parseInt(value);
-    if (isNaN(duration)) return;
     
-    onDurationChange(value);
-    if (departureDate) {
-      const newExpectedDate = addDays(new Date(departureDate), duration);
-      onExpectedReturnChange(newExpectedDate.toISOString().split('T')[0]);
+    // Only proceed if we have a valid number
+    if (!isNaN(duration) && duration >= 0) {
+      onDurationChange(value);
+      
+      // Calculate new expected return date based on duration
+      if (departureDate) {
+        const newExpectedDate = addDays(new Date(departureDate), duration);
+        onExpectedReturnChange(newExpectedDate.toISOString().split('T')[0]);
+      }
     }
   };
 
+  // Handle expected return date change
   const handleExpectedDateChange = (value: string) => {
     onExpectedReturnChange(value);
+    
+    // Calculate new duration based on the selected return date
     if (departureDate && value) {
-      const days = Math.ceil(
-        (new Date(value).getTime() - new Date(departureDate).getTime()) / (1000 * 3600 * 24)
-      );
-      onDurationChange(days.toString());
+      const days = differenceInDays(new Date(value), new Date(departureDate));
+      if (days >= 0) {
+        onDurationChange(days.toString());
+      }
     }
   };
 
   return (
-    <>
-      <div className="grid grid-cols-2 gap-4">
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="departureDate">Data de Saída</Label>
           <Input
             id="departureDate"
             type="date"
-            value={departureDate || today}
+            value={departureDate}
             onChange={(e) => handleDepartureChange(e.target.value)}
+            min={new Date().toISOString().split('T')[0]}
             required
           />
         </div>
@@ -77,14 +97,16 @@ export const DateFields = ({
             type="date"
             value={expectedReturnDate}
             onChange={(e) => handleExpectedDateChange(e.target.value)}
-            min={departureDate || today}
+            min={departureDate}
             required
           />
         </div>
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="estimatedDuration">Tempo Previsto (dias)</Label>
+        <Label htmlFor="estimatedDuration">
+          Tempo Previsto (dias)
+        </Label>
         <Input
           id="estimatedDuration"
           type="number"
@@ -92,6 +114,7 @@ export const DateFields = ({
           value={estimatedDuration}
           onChange={(e) => handleDurationChange(e.target.value)}
           required
+          placeholder="Digite o número de dias"
         />
       </div>
       
@@ -103,10 +126,10 @@ export const DateFields = ({
             type="date"
             value={actualReturnDate}
             onChange={(e) => onActualReturnChange(e.target.value)}
-            min={departureDate || today}
+            min={departureDate}
           />
         </div>
       )}
-    </>
+    </div>
   );
 };
