@@ -1,5 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { addDays } from "date-fns";
 
 interface DateFieldsProps {
   departureDate: string;
@@ -28,6 +29,22 @@ export const DateFields = ({
   const today = new Date().toISOString().split('T')[0];
   const defaultDepartureDate = departureDate || today;
 
+  const handleDepartureChange = (value: string) => {
+    onDepartureChange(value);
+    if (estimatedDuration) {
+      const newExpectedDate = addDays(new Date(value), parseInt(estimatedDuration));
+      onExpectedReturnChange(newExpectedDate.toISOString().split('T')[0]);
+    }
+  };
+
+  const handleDurationChange = (value: string) => {
+    onDurationChange(value);
+    if (value && departureDate) {
+      const newExpectedDate = addDays(new Date(departureDate), parseInt(value));
+      onExpectedReturnChange(newExpectedDate.toISOString().split('T')[0]);
+    }
+  };
+
   return (
     <>
       <div className="grid grid-cols-2 gap-4">
@@ -37,7 +54,7 @@ export const DateFields = ({
             id="departureDate"
             type="date"
             value={defaultDepartureDate}
-            onChange={(e) => onDepartureChange(e.target.value)}
+            onChange={(e) => handleDepartureChange(e.target.value)}
             required
           />
         </div>
@@ -61,7 +78,7 @@ export const DateFields = ({
           type="number"
           min="1"
           value={estimatedDuration}
-          onChange={(e) => onDurationChange(e.target.value)}
+          onChange={(e) => handleDurationChange(e.target.value)}
           required
         />
       </div>

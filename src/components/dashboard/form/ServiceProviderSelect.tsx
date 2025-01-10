@@ -1,6 +1,4 @@
-import { useState } from "react";
-import { Search, Plus } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Plus } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,54 +12,36 @@ interface ServiceProviderSelectProps {
 }
 
 export const ServiceProviderSelect = ({ value, onChange, providers, onAddNew }: ServiceProviderSelectProps) => {
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const filteredProviders = providers.filter(provider =>
-    provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    provider.contact?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   return (
     <div className="space-y-2">
       <Label htmlFor="serviceProvider">Prestador de Serviço</Label>
-      <div className="space-y-2">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            className="pl-10"
-            placeholder="Buscar prestador..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <Select
-              value={value}
-              onValueChange={onChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um prestador" />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredProviders.map((provider) => (
-                  <SelectItem key={provider.id} value={provider.name}>
-                    {provider.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={onAddNew}
-            className="shrink-0"
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <Select
+            value={value}
+            onValueChange={onChange}
           >
-            <Plus className="h-4 w-4" />
-          </Button>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um prestador" />
+            </SelectTrigger>
+            <SelectContent>
+              {providers.map((provider) => (
+                <SelectItem key={provider.id} value={provider.name}>
+                  {provider.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={onAddNew}
+          className="shrink-0"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   );

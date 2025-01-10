@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ServiceProvider } from "@/types/parts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Trash2 } from "lucide-react";
+import { FormField } from "./form/FormFields";
+import { DeleteConfirmation } from "./form/DeleteConfirmation";
 
 interface ServiceProviderFormProps {
   open: boolean;
@@ -141,52 +140,42 @@ export const ServiceProviderForm = ({ open, onClose, onSubmit, initialData }: Se
             <DialogTitle>{initialData ? 'Editar' : 'Cadastrar'} Prestador de Serviço</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome da Empresa</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
-            </div>
+            <FormField
+              id="name"
+              label="Nome da Empresa"
+              value={formData.name}
+              onChange={(value) => setFormData({ ...formData, name: value })}
+              required
+            />
             
-            <div className="space-y-2">
-              <Label htmlFor="contact">Pessoa de Contato</Label>
-              <Input
-                id="contact"
-                value={formData.contact}
-                onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-              />
-            </div>
+            <FormField
+              id="contact"
+              label="Pessoa de Contato"
+              value={formData.contact}
+              onChange={(value) => setFormData({ ...formData, contact: value })}
+            />
             
-            <div className="space-y-2">
-              <Label htmlFor="phone">Telefone</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
-            </div>
+            <FormField
+              id="phone"
+              label="Telefone"
+              value={formData.phone}
+              onChange={(value) => setFormData({ ...formData, phone: value })}
+            />
             
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
+            <FormField
+              id="email"
+              label="Email"
+              value={formData.email}
+              onChange={(value) => setFormData({ ...formData, email: value })}
+              type="email"
+            />
             
-            <div className="space-y-2">
-              <Label htmlFor="address">Endereço</Label>
-              <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              />
-            </div>
+            <FormField
+              id="address"
+              label="Endereço"
+              value={formData.address}
+              onChange={(value) => setFormData({ ...formData, address: value })}
+            />
             
             <div className="flex justify-between items-center">
               {initialData && (
@@ -210,22 +199,11 @@ export const ServiceProviderForm = ({ open, onClose, onSubmit, initialData }: Se
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir este prestador de serviço? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmation
+        open={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={handleDelete}
+      />
     </>
   );
 };
