@@ -12,6 +12,14 @@ import { DateFields } from "./form/DateFields";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
+interface PartFormProps {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (part: Omit<Part, "id" | "status" | "archived">) => void;
+  providers: ServiceProvider[];
+  initialData?: Part;
+}
+
 export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: PartFormProps) => {
   const [formData, setFormData] = useState({
     serviceOrderNumber: "",
