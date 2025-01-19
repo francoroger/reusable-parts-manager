@@ -8,6 +8,7 @@ import { DateCalculator } from "./form/DateCalculator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { FormField } from "./form/FormFields";
+import { Loader2 } from "lucide-react";
 
 interface PartFormProps {
   open: boolean;
@@ -34,6 +35,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
   const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localProviders, setLocalProviders] = useState<ServiceProvider[]>(providers);
+  const [isLoadingProviders, setIsLoadingProviders] = useState(false);
 
   useEffect(() => {
     setLocalProviders(providers);
@@ -172,14 +174,36 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
   };
 
   const handleNewProvider = async (provider: ServiceProvider) => {
-    setLocalProviders(prev => [...prev, provider]);
-    setSelectedProvider(provider);
-    setFormData(prev => ({ ...prev, serviceProvider: provider.id }));
-    setIsAddingProvider(false);
-    toast({
-      title: "Prestador adicionado",
-      description: "Novo prestador foi adicionado com sucesso.",
-    });
+    setIsLoadingProviders(true);
+    try {
+      const { data: newProvider, error } = await supabase
+        .from('service_providers')
+        .select('*')
+        .eq('id', provider.id)
+        .single();
+
+      if (error) throw error;
+
+      if (newProvider) {
+        setLocalProviders(prev => [...prev, newProvider]);
+        setSelectedProvider(newProvider);
+        setFormData(prev => ({ ...prev, serviceProvider: newProvider.id }));
+        toast({
+          title: "Prestador adicionado",
+          description: "Novo prestador foi adicionado com sucesso.",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao buscar novo prestador:', error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao adicionar o prestador.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingProviders(false);
+      setIsAddingProvider(false);
+    }
   };
 
   return (
@@ -216,16 +240,24 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
               onChange={(value) => setFormData({ ...formData, description: value })}
             />
             
-            <ServiceProviderSelect
-              value={formData.serviceProvider}
-              onChange={(value) => {
-                const provider = localProviders.find(p => p.id === value);
-                setSelectedProvider(provider || null);
-                setFormData({ ...formData, serviceProvider: value });
-              }}
-              providers={localProviders}
-              onAddNew={() => setIsAddingProvider(true)}
-            />
+            <div className="space-y-2">
+              <ServiceProviderSelect
+                value={formData.serviceProvider}
+                onChange={(value) => {
+                  const provider = localProviders.find(p => p.id === value);
+                  setSelectedProvider(provider || null);
+                  setFormData({ ...formData, serviceProvider: value });
+                }}
+                providers={localProviders}
+                onAddNew={() => setIsAddingProvider(true)}
+                isLoading={isLoadingProviders}
+              />
+              {selectedProvider && (
+                <div className="text-sm text-muted-foreground">
+                  Prestador selecionado: {selectedProvider.name}
+                </div>
+              )}
+            </div>
             
             <DateCalculator
               onDatesChange={handleDatesChange}
@@ -258,7 +290,14 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
                 Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {initialData ? 'Salvar' : 'Adicionar'}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  initialData ? 'Salvar' : 'Adicionar'
+                )}
               </Button>
             </div>
           </form>
