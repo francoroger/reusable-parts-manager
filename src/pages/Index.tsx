@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PartForm } from "@/components/dashboard/PartForm";
@@ -11,6 +11,7 @@ import { DashboardView } from "@/components/dashboard/DashboardView";
 import { PartsGrid } from "@/components/dashboard/PartsGrid";
 import { KanbanBoard } from "@/components/dashboard/KanbanBoard";
 import { ServiceProviderList } from "@/components/dashboard/ServiceProviderList";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [parts, setParts] = useState<Part[]>([]);
@@ -20,6 +21,32 @@ const Index = () => {
   const [isAddingProvider, setIsAddingProvider] = useState(false);
   const [editingPart, setEditingPart] = useState<Part | undefined>();
   const { toast } = useToast();
+
+  // Fetch providers on component mount
+  useEffect(() => {
+    fetchProviders();
+  }, []);
+
+  const fetchProviders = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('service_providers')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      if (data) {
+        setProviders(data);
+      }
+    } catch (error) {
+      console.error('Error fetching providers:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os prestadores.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const calculateStatus = (expected_return_date: string): Part["status"] => {
     const now = new Date();
@@ -73,24 +100,24 @@ const Index = () => {
     });
   };
 
-  const handleAddProvider = (provider: ServiceProvider) => {
-    setProviders([...providers, provider]);
+  const handleAddProvider = async (provider: ServiceProvider) => {
+    await fetchProviders(); // Refresh the providers list after adding
     toast({
       title: "Prestador adicionado",
       description: `${provider.name} foi adicionado com sucesso.`,
     });
   };
 
-  const handleUpdateProvider = (updatedProvider: ServiceProvider) => {
-    setProviders(providers.map(p => p.id === updatedProvider.id ? updatedProvider : p));
+  const handleUpdateProvider = async (updatedProvider: ServiceProvider) => {
+    await fetchProviders(); // Refresh the providers list after updating
     toast({
       title: "Prestador atualizado",
       description: `${updatedProvider.name} foi atualizado com sucesso.`,
     });
   };
 
-  const handleDeleteProvider = (providerId: string) => {
-    setProviders(providers.filter(p => p.id !== providerId));
+  const handleDeleteProvider = async (providerId: string) => {
+    await fetchProviders(); // Refresh the providers list after deleting
     toast({
       title: "Prestador removido",
       description: "O prestador foi removido com sucesso.",
