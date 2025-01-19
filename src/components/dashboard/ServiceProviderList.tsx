@@ -40,11 +40,6 @@ export const ServiceProviderList = ({ providers, onEdit, onDelete }: ServiceProv
 
       if (serviceOrders && serviceOrders.length > 0) {
         setAssociatedOrders(serviceOrders);
-        toast({
-          title: "Não é possível excluir",
-          description: `Este prestador possui ${serviceOrders.length} ordem(s) de serviço associada(s) e não pode ser excluído.`,
-          variant: "destructive",
-        });
         return;
       }
 
@@ -70,6 +65,15 @@ export const ServiceProviderList = ({ providers, onEdit, onDelete }: ServiceProv
         variant: "destructive",
       });
     }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
   return (
@@ -146,8 +150,21 @@ export const ServiceProviderList = ({ providers, onEdit, onDelete }: ServiceProv
                           <p className="font-medium">OS #{order.service_order_number}</p>
                           <p className="text-sm text-muted-foreground">Cliente: {order.client_name}</p>
                           <p className="text-sm text-muted-foreground">
-                            Saída: {new Date(order.departure_date).toLocaleDateString()}
+                            Saída: {formatDate(order.departure_date)}
                           </p>
+                          <p className="text-sm text-muted-foreground">
+                            Retorno previsto: {formatDate(order.expected_return_date)}
+                          </p>
+                          {order.actual_return_date && (
+                            <p className="text-sm text-muted-foreground">
+                              Retorno real: {formatDate(order.actual_return_date)}
+                            </p>
+                          )}
+                          {order.notes && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Observações: {order.notes}
+                            </p>
+                          )}
                         </div>
                       ))}
                     </div>
