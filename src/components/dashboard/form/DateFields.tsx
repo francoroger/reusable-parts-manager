@@ -37,19 +37,6 @@ export const DateFields = ({
 
   // Handle departure date change
   const handleDepartureChange = (value: string) => {
-    const selectedDate = new Date(value);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (selectedDate < today) {
-      toast({
-        title: "Data inválida",
-        description: "A data de saída não pode ser anterior a hoje.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     onDepartureChange(value);
     
     // If we have an estimated duration, update the expected return date
@@ -124,7 +111,6 @@ export const DateFields = ({
             type="date"
             value={departureDate}
             onChange={(e) => handleDepartureChange(e.target.value)}
-            min={new Date().toISOString().split('T')[0]}
             required
             className="w-full"
           />

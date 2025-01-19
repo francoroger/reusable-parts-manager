@@ -83,13 +83,22 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
     e.preventDefault();
     if (isSubmitting) return;
 
+    if (!selectedProvider) {
+      toast({
+        title: "Erro",
+        description: "Por favor, selecione um prestador de serviço.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const partData = {
         service_order_number: formData.serviceOrderNumber,
         client_name: formData.clientName,
         description: formData.description,
-        service_provider_id: selectedProvider?.id,
+        service_provider_id: selectedProvider.id,
         departure_date: formData.departureDate,
         expected_return_date: formData.expectedReturnDate,
         actual_return_date: formData.actualReturnDate || null,
@@ -123,7 +132,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
             client_name: data.client_name,
             description: data.description,
             service_provider_id: data.service_provider_id,
-            service_provider: selectedProvider?.name || "",
+            service_provider: selectedProvider.name,
             departure_date: data.departure_date,
             expected_return_date: data.expected_return_date,
             actual_return_date: data.actual_return_date,
