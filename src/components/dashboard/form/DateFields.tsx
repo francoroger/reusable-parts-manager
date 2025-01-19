@@ -125,7 +125,6 @@ export const DateFields = ({
             type="date"
             value={expectedReturnDate}
             onChange={(e) => handleExpectedDateChange(e.target.value)}
-            min={departureDate}
             required
             className="w-full"
           />
@@ -158,7 +157,6 @@ export const DateFields = ({
             type="date"
             value={actualReturnDate}
             onChange={(e) => onActualReturnChange(e.target.value)}
-            min={departureDate}
             className="w-full"
           />
         </div>
