@@ -14,6 +14,7 @@ import { ServiceProviderForm } from "./ServiceProviderForm";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ServiceProviderListProps {
   providers: ServiceProvider[];
@@ -24,6 +25,7 @@ interface ServiceProviderListProps {
 export const ServiceProviderList = ({ providers, onEdit, onDelete }: ServiceProviderListProps) => {
   const [editingProvider, setEditingProvider] = useState<ServiceProvider | null>(null);
   const [deletingProvider, setDeletingProvider] = useState<ServiceProvider | null>(null);
+  const [associatedOrders, setAssociatedOrders] = useState<any[]>([]);
   const { toast } = useToast();
 
   const handleDelete = async (providerId: string) => {
@@ -31,15 +33,16 @@ export const ServiceProviderList = ({ providers, onEdit, onDelete }: ServiceProv
       // First, check if there are any service orders using this provider
       const { data: serviceOrders, error: checkError } = await supabase
         .from('service_orders')
-        .select('id')
+        .select('*')
         .eq('service_provider_id', providerId);
 
       if (checkError) throw checkError;
 
       if (serviceOrders && serviceOrders.length > 0) {
+        setAssociatedOrders(serviceOrders);
         toast({
           title: "Não é possível excluir",
-          description: "Este prestador possui ordens de serviço associadas e não pode ser excluído.",
+          description: `Este prestador possui ${serviceOrders.length} ordem(s) de serviço associada(s) e não pode ser excluído.`,
           variant: "destructive",
         });
         return;
@@ -54,6 +57,7 @@ export const ServiceProviderList = ({ providers, onEdit, onDelete }: ServiceProv
       if (error) throw error;
 
       onDelete(providerId);
+      setAssociatedOrders([]);
       toast({
         title: "Prestador excluído",
         description: "O prestador foi excluído com sucesso.",
@@ -124,27 +128,54 @@ export const ServiceProviderList = ({ providers, onEdit, onDelete }: ServiceProv
         initialData={editingProvider || undefined}
       />
 
-      <AlertDialog open={!!deletingProvider} onOpenChange={() => setDeletingProvider(null)}>
+      <AlertDialog open={!!deletingProvider} onOpenChange={() => {
+        setDeletingProvider(null);
+        setAssociatedOrders([]);
+      }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir este prestador de serviço? Esta ação não pode ser desfeita.
+            <AlertDialogDescription className="space-y-4">
+              {associatedOrders.length > 0 ? (
+                <>
+                  <p>Este prestador possui as seguintes ordens de serviço associadas:</p>
+                  <ScrollArea className="h-[200px] rounded-md border p-4">
+                    <div className="space-y-2">
+                      {associatedOrders.map((order) => (
+                        <div key={order.id} className="rounded-lg bg-muted p-2">
+                          <p className="font-medium">OS #{order.service_order_number}</p>
+                          <p className="text-sm text-muted-foreground">Cliente: {order.client_name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Saída: {new Date(order.departure_date).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                  <p className="text-red-500">
+                    Você precisa primeiro resolver estas ordens de serviço antes de excluir o prestador.
+                  </p>
+                </>
+              ) : (
+                <p>Tem certeza que deseja excluir este prestador de serviço? Esta ação não pode ser desfeita.</p>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (deletingProvider) {
-                  handleDelete(deletingProvider.id);
-                }
-                setDeletingProvider(null);
-              }}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Excluir
-            </AlertDialogAction>
+            {associatedOrders.length === 0 && (
+              <AlertDialogAction
+                onClick={() => {
+                  if (deletingProvider) {
+                    handleDelete(deletingProvider.id);
+                  }
+                  setDeletingProvider(null);
+                }}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Excluir
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
