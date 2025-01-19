@@ -22,33 +22,6 @@ export const DateCalculator = ({ onDatesChange, initialDates }: DateCalculatorPr
   const [expectedReturnDate, setExpectedReturnDate] = useState(initialDates?.expectedReturnDate || '');
   const [estimatedDuration, setEstimatedDuration] = useState(initialDates?.estimatedDuration || '');
 
-  // Validate departure date is not in the past
-  const handleDepartureChange = (value: string) => {
-    const selectedDate = new Date(value);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (selectedDate < today) {
-      toast({
-        title: "Data inválida",
-        description: "A data de saída não pode ser anterior a hoje.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setDepartureDate(value);
-    
-    // If we have duration, update return date
-    if (estimatedDuration && !isNaN(parseInt(estimatedDuration))) {
-      const duration = parseInt(estimatedDuration);
-      if (duration > 0) {
-        const newExpectedDate = addDays(new Date(value), duration);
-        setExpectedReturnDate(newExpectedDate.toISOString().split('T')[0]);
-      }
-    }
-  };
-
   // Calculate duration when return date changes
   const handleReturnDateChange = (value: string) => {
     const returnDate = new Date(value);
@@ -88,6 +61,20 @@ export const DateCalculator = ({ onDatesChange, initialDates }: DateCalculatorPr
     setExpectedReturnDate(newExpectedDate.toISOString().split('T')[0]);
   };
 
+  // Handle departure date change
+  const handleDepartureChange = (value: string) => {
+    setDepartureDate(value);
+    
+    // If we have duration, update return date
+    if (estimatedDuration && !isNaN(parseInt(estimatedDuration))) {
+      const duration = parseInt(estimatedDuration);
+      if (duration > 0) {
+        const newExpectedDate = addDays(new Date(value), duration);
+        setExpectedReturnDate(newExpectedDate.toISOString().split('T')[0]);
+      }
+    }
+  };
+
   // Notify parent component of changes
   useEffect(() => {
     if (departureDate && expectedReturnDate && estimatedDuration) {
@@ -109,7 +96,6 @@ export const DateCalculator = ({ onDatesChange, initialDates }: DateCalculatorPr
             type="date"
             value={departureDate}
             onChange={(e) => handleDepartureChange(e.target.value)}
-            min={new Date().toISOString().split('T')[0]}
             required
           />
         </div>

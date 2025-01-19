@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Part, ServiceProvider } from "@/types/parts";
 import { ServiceProviderForm } from "./ServiceProviderForm";
@@ -10,6 +7,7 @@ import { ServiceProviderSelect } from "./form/ServiceProviderSelect";
 import { DateCalculator } from "./form/DateCalculator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { FormField } from "./form/FormFields";
 
 interface PartFormProps {
   open: boolean;
@@ -179,34 +177,28 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="serviceOrderNumber">Número da OS</Label>
-              <Input
-                id="serviceOrderNumber"
-                value={formData.serviceOrderNumber}
-                onChange={(e) => setFormData({ ...formData, serviceOrderNumber: e.target.value })}
-                required
-              />
-            </div>
+            <FormField
+              id="serviceOrderNumber"
+              label="Número da OS"
+              value={formData.serviceOrderNumber}
+              onChange={(value) => setFormData({ ...formData, serviceOrderNumber: value })}
+              required
+            />
             
-            <div className="space-y-2">
-              <Label htmlFor="clientName">Nome do Cliente</Label>
-              <Input
-                id="clientName"
-                value={formData.clientName}
-                onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
-                required
-              />
-            </div>
+            <FormField
+              id="clientName"
+              label="Nome do Cliente"
+              value={formData.clientName}
+              onChange={(value) => setFormData({ ...formData, clientName: value })}
+              required
+            />
             
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              />
-            </div>
+            <FormField
+              id="description"
+              label="Descrição"
+              value={formData.description}
+              onChange={(value) => setFormData({ ...formData, description: value })}
+            />
             
             <ServiceProviderSelect
               value={formData.serviceProvider}
@@ -229,26 +221,21 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
             />
             
             {initialData && (
-              <div className="space-y-2">
-                <Label htmlFor="actualReturnDate">Data de Retorno Real</Label>
-                <Input
-                  id="actualReturnDate"
-                  type="date"
-                  value={formData.actualReturnDate}
-                  onChange={(e) => setFormData({ ...formData, actualReturnDate: e.target.value })}
-                  min={formData.departureDate}
-                />
-              </div>
+              <FormField
+                id="actualReturnDate"
+                label="Data de Retorno Real"
+                value={formData.actualReturnDate}
+                onChange={(value) => setFormData({ ...formData, actualReturnDate: value })}
+                type="date"
+              />
             )}
             
-            <div className="space-y-2">
-              <Label htmlFor="notes">Observações</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              />
-            </div>
+            <FormField
+              id="notes"
+              label="Observações"
+              value={formData.notes}
+              onChange={(value) => setFormData({ ...formData, notes: value })}
+            />
             
             <div className="flex justify-end space-x-2">
               <Button variant="outline" type="button" onClick={onClose} disabled={isSubmitting}>
