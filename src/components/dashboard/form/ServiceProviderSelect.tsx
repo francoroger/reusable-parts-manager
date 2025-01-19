@@ -18,7 +18,7 @@ export const ServiceProviderSelect = ({ value, onChange, providers, onAddNew }: 
       <div className="flex gap-2">
         <div className="flex-1">
           <Select
-            value={value}
+            value={value || undefined}
             onValueChange={onChange}
           >
             <SelectTrigger>

@@ -33,6 +33,11 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
   const [isAddingProvider, setIsAddingProvider] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [localProviders, setLocalProviders] = useState<ServiceProvider[]>(providers);
+
+  useEffect(() => {
+    setLocalProviders(providers);
+  }, [providers]);
 
   useEffect(() => {
     if (initialData) {
@@ -166,6 +171,17 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
     }));
   };
 
+  const handleNewProvider = async (provider: ServiceProvider) => {
+    setLocalProviders(prev => [...prev, provider]);
+    setSelectedProvider(provider);
+    setFormData(prev => ({ ...prev, serviceProvider: provider.id }));
+    setIsAddingProvider(false);
+    toast({
+      title: "Prestador adicionado",
+      description: "Novo prestador foi adicionado com sucesso.",
+    });
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
@@ -203,11 +219,11 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
             <ServiceProviderSelect
               value={formData.serviceProvider}
               onChange={(value) => {
-                const provider = providers.find(p => p.id === value);
+                const provider = localProviders.find(p => p.id === value);
                 setSelectedProvider(provider || null);
                 setFormData({ ...formData, serviceProvider: value });
               }}
-              providers={providers}
+              providers={localProviders}
               onAddNew={() => setIsAddingProvider(true)}
             />
             
@@ -252,11 +268,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
       <ServiceProviderForm
         open={isAddingProvider}
         onClose={() => setIsAddingProvider(false)}
-        onSubmit={(provider) => {
-          setSelectedProvider(provider);
-          setFormData({ ...formData, serviceProvider: provider.id });
-          setIsAddingProvider(false);
-        }}
+        onSubmit={handleNewProvider}
       />
     </>
   );
