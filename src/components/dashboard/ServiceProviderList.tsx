@@ -28,6 +28,24 @@ export const ServiceProviderList = ({ providers, onEdit, onDelete }: ServiceProv
 
   const handleDelete = async (providerId: string) => {
     try {
+      // First, check if there are any service orders using this provider
+      const { data: serviceOrders, error: checkError } = await supabase
+        .from('service_orders')
+        .select('id')
+        .eq('service_provider_id', providerId);
+
+      if (checkError) throw checkError;
+
+      if (serviceOrders && serviceOrders.length > 0) {
+        toast({
+          title: "Não é possível excluir",
+          description: "Este prestador possui ordens de serviço associadas e não pode ser excluído.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // If no service orders exist, proceed with deletion
       const { error } = await supabase
         .from('service_providers')
         .delete()
@@ -36,6 +54,10 @@ export const ServiceProviderList = ({ providers, onEdit, onDelete }: ServiceProv
       if (error) throw error;
 
       onDelete(providerId);
+      toast({
+        title: "Prestador excluído",
+        description: "O prestador foi excluído com sucesso.",
+      });
     } catch (error) {
       console.error('Error deleting provider:', error);
       toast({
