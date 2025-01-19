@@ -12,6 +12,8 @@ import { Edit2, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { ServiceProviderForm } from "./ServiceProviderForm";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface ServiceProviderListProps {
   providers: ServiceProvider[];
@@ -22,6 +24,27 @@ interface ServiceProviderListProps {
 export const ServiceProviderList = ({ providers, onEdit, onDelete }: ServiceProviderListProps) => {
   const [editingProvider, setEditingProvider] = useState<ServiceProvider | null>(null);
   const [deletingProvider, setDeletingProvider] = useState<ServiceProvider | null>(null);
+  const { toast } = useToast();
+
+  const handleDelete = async (providerId: string) => {
+    try {
+      const { error } = await supabase
+        .from('service_providers')
+        .delete()
+        .eq('id', providerId);
+
+      if (error) throw error;
+
+      onDelete(providerId);
+    } catch (error) {
+      console.error('Error deleting provider:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o prestador.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <>
@@ -92,7 +115,7 @@ export const ServiceProviderList = ({ providers, onEdit, onDelete }: ServiceProv
             <AlertDialogAction
               onClick={() => {
                 if (deletingProvider) {
-                  onDelete(deletingProvider.id);
+                  handleDelete(deletingProvider.id);
                 }
                 setDeletingProvider(null);
               }}
