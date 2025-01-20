@@ -22,10 +22,43 @@ const Index = () => {
   const [editingPart, setEditingPart] = useState<Part | undefined>();
   const { toast } = useToast();
 
-  // Fetch providers on component mount
+  // Fetch both providers and service orders on component mount
   useEffect(() => {
     fetchProviders();
+    fetchServiceOrders();
   }, []);
+
+  const fetchServiceOrders = async () => {
+    try {
+      const { data: orders, error } = await supabase
+        .from('service_orders')
+        .select(`
+          *,
+          service_providers (
+            name
+          )
+        `)
+        .order('service_order_number');
+
+      if (error) throw error;
+
+      if (orders) {
+        const formattedOrders: Part[] = orders.map(order => ({
+          ...order,
+          service_provider: order.service_providers?.name || '',
+          status: calculateStatus(order.expected_return_date)
+        }));
+        setParts(formattedOrders);
+      }
+    } catch (error) {
+      console.error('Error fetching service orders:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar as ordens de serviço.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const fetchProviders = async () => {
     try {
@@ -59,45 +92,103 @@ const Index = () => {
     return "ontime";
   };
 
-  const handleAddPart = (newPart: Omit<Part, "id" | "status" | "archived">) => {
-    const part: Part = {
-      ...newPart,
-      id: Date.now().toString(),
-      status: calculateStatus(newPart.expected_return_date),
-      archived: false,
-    };
+  const handleAddPart = async (newPart: Omit<Part, "id" | "status" | "archived">) => {
+    try {
+      const { data, error } = await supabase
+        .from('service_orders')
+        .insert([{
+          ...newPart,
+          archived: false
+        }])
+        .select()
+        .single();
 
-    setParts([...parts, part]);
-    toast({
-      title: "OS adicionada com sucesso",
-      description: `OS #${part.service_order_number} foi adicionada ao sistema.`,
-    });
+      if (error) throw error;
+
+      if (data) {
+        const formattedPart: Part = {
+          ...data,
+          service_provider: providers.find(p => p.id === data.service_provider_id)?.name || '',
+          status: calculateStatus(data.expected_return_date)
+        };
+        setParts([...parts, formattedPart]);
+        toast({
+          title: "OS adicionada com sucesso",
+          description: `OS #${formattedPart.service_order_number} foi adicionada ao sistema.`,
+        });
+      }
+    } catch (error) {
+      console.error('Error adding service order:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível adicionar a ordem de serviço.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleEditPart = (updatedPart: Omit<Part, "id" | "status" | "archived">) => {
+  const handleEditPart = async (updatedPart: Omit<Part, "id" | "status" | "archived">) => {
     if (!editingPart) return;
 
-    const part: Part = {
-      ...updatedPart,
-      id: editingPart.id,
-      status: calculateStatus(updatedPart.expected_return_date),
-      archived: editingPart.archived || false,
-    };
+    try {
+      const { data, error } = await supabase
+        .from('service_orders')
+        .update({
+          ...updatedPart
+        })
+        .eq('id', editingPart.id)
+        .select()
+        .single();
 
-    setParts(parts.map((p) => (p.id === editingPart.id ? part : p)));
-    toast({
-      title: "OS atualizada com sucesso",
-      description: `OS #${part.service_order_number} foi atualizada.`,
-    });
+      if (error) throw error;
+
+      if (data) {
+        const formattedPart: Part = {
+          ...data,
+          service_provider: providers.find(p => p.id === data.service_provider_id)?.name || '',
+          status: calculateStatus(data.expected_return_date)
+        };
+        setParts(parts.map((p) => (p.id === editingPart.id ? formattedPart : p)));
+        toast({
+          title: "OS atualizada com sucesso",
+          description: `OS #${formattedPart.service_order_number} foi atualizada.`,
+        });
+      }
+    } catch (error) {
+      console.error('Error updating service order:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a ordem de serviço.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleArchivePart = (part: Part) => {
-    const updatedPart = { ...part, archived: !part.archived };
-    setParts(parts.map((p) => (p.id === part.id ? updatedPart : p)));
-    toast({
-      title: part.archived ? "OS desarquivada" : "OS arquivada",
-      description: `OS #${part.service_order_number} foi ${part.archived ? 'desarquivada' : 'arquivada'} com sucesso.`,
-    });
+  const handleArchivePart = async (part: Part) => {
+    try {
+      const { error } = await supabase
+        .from('service_orders')
+        .update({
+          archived: !part.archived
+        })
+        .eq('id', part.id);
+
+      if (error) throw error;
+
+      const updatedPart = { ...part, archived: !part.archived };
+      setParts(parts.map((p) => (p.id === part.id ? updatedPart : p)));
+      toast({
+        title: part.archived ? "OS desarquivada" : "OS arquivada",
+        description: `OS #${part.service_order_number} foi ${part.archived ? 'desarquivada' : 'arquivada'} com sucesso.`,
+      });
+    } catch (error) {
+      console.error('Error archiving service order:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível arquivar/desarquivar a ordem de serviço.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleAddProvider = async (provider: ServiceProvider) => {
@@ -189,7 +280,7 @@ const Index = () => {
 
             <TabsContent value="active" className="space-y-6">
               <PartsGrid
-                parts={filteredParts.filter(part => !part.archived)}
+                parts={filteredParts}
                 onEditPart={setEditingPart}
                 onArchivePart={handleArchivePart}
               />
@@ -197,7 +288,7 @@ const Index = () => {
 
             <TabsContent value="archived" className="space-y-6">
               <PartsGrid
-                parts={filteredParts.filter(part => part.archived)}
+                parts={filteredParts}
                 onEditPart={setEditingPart}
                 onArchivePart={handleArchivePart}
                 showArchived={true}
