@@ -76,13 +76,6 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
       fileInputRef.current.setAttribute('capture', 'environment');
       fileInputRef.current.setAttribute('accept', 'image/*');
       fileInputRef.current.click();
-      
-      // Remove the capture attribute after clicking
-      setTimeout(() => {
-        if (fileInputRef.current) {
-          fileInputRef.current.removeAttribute('capture');
-        }
-      }, 1000);
     }
   };
 

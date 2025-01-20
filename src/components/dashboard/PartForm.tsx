@@ -212,10 +212,21 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onClose}>
+      <Dialog open={open} onOpenChange={(value) => {
+        if (!isSubmitting) {
+          onClose();
+        }
+      }}>
         <DialogContent 
           className="sm:max-w-[425px] max-w-[95vw] w-full overflow-y-auto max-h-[90vh]"
+          onPointerDownOutside={(e) => {
+            e.preventDefault();
+            if (isSubmitting) {
+              e.preventDefault();
+            }
+          }}
           onInteractOutside={(e) => {
+            e.preventDefault();
             if (isSubmitting) {
               e.preventDefault();
             }
@@ -333,7 +344,12 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
             </div>
 
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" type="button" onClick={onClose} disabled={isSubmitting}>
+              <Button variant="outline" type="button" onClick={(e) => {
+                e.stopPropagation();
+                if (!isSubmitting) {
+                  onClose();
+                }
+              }} disabled={isSubmitting}>
                 Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting}>
