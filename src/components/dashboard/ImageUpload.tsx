@@ -11,6 +11,7 @@ interface ImageUploadProps {
 export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (file: File) => {
     setIsUploading(true);
@@ -55,34 +56,9 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
     }
   };
 
-  const handleCameraCapture = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      const video = document.createElement('video');
-      const canvas = document.createElement('canvas');
-      
-      video.srcObject = stream;
-      await video.play();
-
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext('2d')?.drawImage(video, 0, 0);
-
-      stream.getTracks().forEach(track => track.stop());
-
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
-          handleFileUpload(file);
-        }
-      }, 'image/jpeg');
-    } catch (error) {
-      console.error('Error capturing image:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível capturar a imagem.",
-        variant: "destructive",
-      });
+  const handleCameraCapture = () => {
+    if (cameraInputRef.current) {
+      cameraInputRef.current.click();
     }
   };
 
@@ -93,6 +69,14 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
         ref={fileInputRef}
         className="hidden"
         accept="image/*"
+        onChange={handleFileChange}
+      />
+      <input
+        type="file"
+        ref={cameraInputRef}
+        className="hidden"
+        accept="image/*"
+        capture="environment"
         onChange={handleFileChange}
       />
       <Button
