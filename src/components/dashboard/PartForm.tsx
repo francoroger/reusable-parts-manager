@@ -41,6 +41,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
   const [isLoadingProviders, setIsLoadingProviders] = useState(false);
   const [images, setImages] = useState<string[]>(initialData?.images || []);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   useEffect(() => {
     setLocalProviders(providers);
@@ -78,6 +79,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
       setSelectedProvider(null);
       setImages([]);
     }
+    setIsSubmitted(false);
   }, [initialData, providers, open]);
 
   const calculateStatus = (expected_return_date: string): Part["status"] => {
@@ -93,7 +95,12 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) return;
+    e.stopPropagation();
+    
+    if (isSubmitting || isSubmitted) {
+      console.log('Preventing duplicate submission');
+      return;
+    }
 
     if (!selectedProvider) {
       toast({
@@ -105,6 +112,8 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
     }
 
     setIsSubmitting(true);
+    setIsSubmitted(true);
+
     try {
       const partData = {
         service_order_number: formData.serviceOrderNumber,
@@ -163,6 +172,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
       onClose();
     } catch (error) {
       console.error('Erro ao salvar OS:', error);
+      setIsSubmitted(false);
       toast({
         title: "Erro",
         description: "Ocorreu um erro ao salvar a ordem de serviço.",
@@ -212,11 +222,14 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
 
   return (
     <>
-      <Dialog open={open} onOpenChange={(value) => {
-        if (!isSubmitting) {
-          onClose();
-        }
-      }}>
+      <Dialog 
+        open={open} 
+        onOpenChange={(value) => {
+          if (!isSubmitting) {
+            onClose();
+          }
+        }}
+      >
         <DialogContent 
           className="sm:max-w-[425px] max-w-[95vw] w-full overflow-y-auto max-h-[90vh]"
           onPointerDownOutside={(e) => {
@@ -338,15 +351,23 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
             </div>
 
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" type="button" onClick={(e) => {
-                e.stopPropagation();
-                if (!isSubmitting) {
-                  onClose();
-                }
-              }} disabled={isSubmitting}>
+              <Button 
+                variant="outline" 
+                type="button" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isSubmitting) {
+                    onClose();
+                  }
+                }} 
+                disabled={isSubmitting}
+              >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting || isSubmitted}
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
