@@ -54,6 +54,7 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
     event.stopPropagation();
     const file = event.target.files?.[0];
     
@@ -67,6 +68,24 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
     }
   };
 
+  const handleCameraClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (fileInputRef.current) {
+      fileInputRef.current.setAttribute('capture', 'environment');
+      fileInputRef.current.setAttribute('accept', 'image/*');
+      fileInputRef.current.click();
+      
+      // Remove the capture attribute after clicking
+      setTimeout(() => {
+        if (fileInputRef.current) {
+          fileInputRef.current.removeAttribute('capture');
+        }
+      }, 1000);
+    }
+  };
+
   return (
     <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
       <input
@@ -75,6 +94,7 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
         className="hidden"
         accept="image/*"
         onChange={handleFileChange}
+        onClick={(e) => e.stopPropagation()}
       />
       <Button
         variant="outline"
@@ -82,7 +102,10 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          fileInputRef.current?.click();
+          if (fileInputRef.current) {
+            fileInputRef.current.removeAttribute('capture');
+            fileInputRef.current.click();
+          }
         }}
         disabled={isUploading}
       >
@@ -92,19 +115,7 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
       <Button
         variant="outline"
         size="sm"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (fileInputRef.current) {
-            fileInputRef.current.setAttribute('capture', 'environment');
-            fileInputRef.current.click();
-            setTimeout(() => {
-              if (fileInputRef.current) {
-                fileInputRef.current.removeAttribute('capture');
-              }
-            }, 1000);
-          }
-        }}
+        onClick={handleCameraClick}
         disabled={isUploading}
       >
         <Camera className="h-4 w-4 mr-2" />

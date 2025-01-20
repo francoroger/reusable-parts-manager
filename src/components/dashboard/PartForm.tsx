@@ -213,14 +213,22 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[425px] max-w-[95vw] w-full overflow-y-auto max-h-[90vh]">
+        <DialogContent 
+          className="sm:max-w-[425px] max-w-[95vw] w-full overflow-y-auto max-h-[90vh]"
+          onInteractOutside={(e) => {
+            if (isSubmitting) {
+              e.preventDefault();
+            }
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
           <DialogHeader>
             <DialogTitle>{initialData ? 'Editar' : 'Nova'} Ordem de Serviço</DialogTitle>
             <DialogDescription>
               Preencha os dados da ordem de serviço. As datas serão calculadas automaticamente.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" onClick={(e) => e.stopPropagation()}>
             <FormField
               id="serviceOrderNumber"
               label="Número da OS"
@@ -312,7 +320,10 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
                       variant="destructive"
                       size="icon"
                       className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => handleRemoveImage(imageUrl)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveImage(imageUrl);
+                      }}
                     >
                       <X className="h-4 w-4" />
                     </Button>
