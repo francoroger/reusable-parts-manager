@@ -9,6 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { FormField } from "./form/FormFields";
 import { Loader2 } from "lucide-react";
+import { ImageUpload } from "./ImageUpload";
+import { ImageViewer } from "./ImageViewer";
+import { X } from "lucide-react";
 
 interface PartFormProps {
   open: boolean;
@@ -36,6 +39,8 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localProviders, setLocalProviders] = useState<ServiceProvider[]>(providers);
   const [isLoadingProviders, setIsLoadingProviders] = useState(false);
+  const [images, setImages] = useState<string[]>(initialData?.images || []);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     setLocalProviders(providers);
@@ -56,6 +61,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
       });
       const provider = providers.find(p => p.id === initialData.service_provider_id);
       setSelectedProvider(provider || null);
+      setImages(initialData.images || []);
     } else {
       const today = new Date().toISOString().split('T')[0];
       setFormData({
@@ -70,6 +76,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
         notes: "",
       });
       setSelectedProvider(null);
+      setImages([]);
     }
   }, [initialData, providers, open]);
 
@@ -110,6 +117,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
         estimated_duration: parseInt(formData.estimatedDuration),
         notes: formData.notes,
         status: calculateStatus(formData.expectedReturnDate),
+        images: images,
       };
 
       if (initialData?.id) {
@@ -143,6 +151,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
             actual_return_date: data.actual_return_date,
             estimated_duration: data.estimated_duration,
             notes: data.notes,
+            images: data.images,
           };
           onSubmit(transformedData);
           toast({
@@ -164,46 +173,12 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
     }
   };
 
-  const handleDatesChange = (dates: { departureDate: string; expectedReturnDate: string; estimatedDuration: string }) => {
-    setFormData(prev => ({
-      ...prev,
-      departureDate: dates.departureDate,
-      expectedReturnDate: dates.expectedReturnDate,
-      estimatedDuration: dates.estimatedDuration,
-    }));
+  const handleImageUpload = (imageUrl: string) => {
+    setImages(prev => [...prev, imageUrl]);
   };
 
-  const handleNewProvider = async (provider: ServiceProvider) => {
-    setIsLoadingProviders(true);
-    try {
-      const { data: newProvider, error } = await supabase
-        .from('service_providers')
-        .select('*')
-        .eq('id', provider.id)
-        .single();
-
-      if (error) throw error;
-
-      if (newProvider) {
-        setLocalProviders(prev => [...prev, newProvider]);
-        setSelectedProvider(newProvider);
-        setFormData(prev => ({ ...prev, serviceProvider: newProvider.id }));
-        toast({
-          title: "Prestador adicionado",
-          description: "Novo prestador foi adicionado com sucesso.",
-        });
-      }
-    } catch (error) {
-      console.error('Erro ao buscar novo prestador:', error);
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao adicionar o prestador.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingProviders(false);
-      setIsAddingProvider(false);
-    }
+  const handleRemoveImage = (imageUrl: string) => {
+    setImages(prev => prev.filter(url => url !== imageUrl));
   };
 
   return (
@@ -260,7 +235,14 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
             </div>
             
             <DateCalculator
-              onDatesChange={handleDatesChange}
+              onDatesChange={(dates) => {
+                setFormData(prev => ({
+                  ...prev,
+                  departureDate: dates.departureDate,
+                  expectedReturnDate: dates.expectedReturnDate,
+                  estimatedDuration: dates.estimatedDuration,
+                }));
+              }}
               initialDates={{
                 departureDate: formData.departureDate,
                 expectedReturnDate: formData.expectedReturnDate,
@@ -285,6 +267,31 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
               onChange={(value) => setFormData({ ...formData, notes: value })}
             />
             
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Imagens</label>
+              <ImageUpload onImageUpload={handleImageUpload} />
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                {images.map((imageUrl, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={imageUrl}
+                      alt={`Imagem ${index + 1}`}
+                      className="w-full h-24 object-cover rounded-md cursor-pointer"
+                      onClick={() => setSelectedImage(imageUrl)}
+                    />
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleRemoveImage(imageUrl)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div className="flex justify-end space-x-2">
               <Button variant="outline" type="button" onClick={onClose} disabled={isSubmitting}>
                 Cancelar
@@ -308,6 +315,12 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
         open={isAddingProvider}
         onClose={() => setIsAddingProvider(false)}
         onSubmit={handleNewProvider}
+      />
+
+      <ImageViewer
+        imageUrl={selectedImage || ''}
+        isOpen={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
       />
     </>
   );

@@ -20,6 +20,7 @@ export type Database = {
           estimated_duration: number
           expected_return_date: string
           id: string
+          images: Json | null
           notes: string | null
           service_order_number: string
           service_provider_id: string | null
@@ -36,6 +37,7 @@ export type Database = {
           estimated_duration: number
           expected_return_date: string
           id?: string
+          images?: Json | null
           notes?: string | null
           service_order_number: string
           service_provider_id?: string | null
@@ -52,6 +54,7 @@ export type Database = {
           estimated_duration?: number
           expected_return_date?: string
           id?: string
+          images?: Json | null
           notes?: string | null
           service_order_number?: string
           service_provider_id?: string | null
