@@ -11,7 +11,6 @@ interface ImageUploadProps {
 export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (file: File) => {
     setIsUploading(true);
@@ -56,12 +55,6 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
     }
   };
 
-  const handleCameraCapture = () => {
-    if (cameraInputRef.current) {
-      cameraInputRef.current.click();
-    }
-  };
-
   return (
     <div className="flex gap-2">
       <input
@@ -69,14 +62,6 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
         ref={fileInputRef}
         className="hidden"
         accept="image/*"
-        onChange={handleFileChange}
-      />
-      <input
-        type="file"
-        ref={cameraInputRef}
-        className="hidden"
-        accept="image/*"
-        capture="environment"
         onChange={handleFileChange}
       />
       <Button
@@ -91,7 +76,18 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
       <Button
         variant="outline"
         size="sm"
-        onClick={handleCameraCapture}
+        onClick={() => {
+          if (fileInputRef.current) {
+            fileInputRef.current.setAttribute('capture', 'environment');
+            fileInputRef.current.click();
+            // Remove the capture attribute after clicking to allow regular file selection
+            setTimeout(() => {
+              if (fileInputRef.current) {
+                fileInputRef.current.removeAttribute('capture');
+              }
+            }, 1000);
+          }
+        }}
         disabled={isUploading}
       >
         <Camera className="h-4 w-4 mr-2" />
