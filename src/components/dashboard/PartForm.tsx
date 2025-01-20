@@ -61,7 +61,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
       });
       const provider = providers.find(p => p.id === initialData.service_provider_id);
       setSelectedProvider(provider || null);
-      setImages(initialData.images || []);
+      setImages(Array.isArray(initialData.images) ? initialData.images.map(img => String(img)) : []);
     } else {
       const today = new Date().toISOString().split('T')[0];
       setFormData({
@@ -117,7 +117,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
         estimated_duration: parseInt(formData.estimatedDuration),
         notes: formData.notes,
         status: calculateStatus(formData.expectedReturnDate),
-        images: images,
+        images: images.map(img => String(img)),
       };
 
       if (initialData?.id) {
@@ -151,7 +151,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
             actual_return_date: data.actual_return_date,
             estimated_duration: data.estimated_duration,
             notes: data.notes,
-            images: Array.isArray(data.images) ? data.images : [],
+            images: Array.isArray(data.images) ? data.images.map(img => String(img)) : [],
           };
           onSubmit(transformedData);
           toast({

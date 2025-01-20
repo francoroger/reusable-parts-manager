@@ -27,5 +27,5 @@ export interface Part {
   archived?: boolean;
   created_at?: string;
   updated_at?: string;
-  images?: string[];
+  images: string[];
 }

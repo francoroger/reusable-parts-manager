@@ -50,7 +50,7 @@ const Index = () => {
           ...order,
           service_provider: order.service_providers?.name || '',
           status: calculateStatus(order.expected_return_date),
-          images: Array.isArray(order.images) ? order.images : []
+          images: Array.isArray(order.images) ? order.images.map(img => String(img)) : []
         }));
         setParts(formattedOrders);
       }
@@ -130,7 +130,7 @@ const Index = () => {
           ...dbPart,
           archived: false,
           status: calculateStatus(newPart.expected_return_date),
-          images: dbPart.images || []
+          images: dbPart.images.map(img => String(img))
         })
         .select()
         .single();
@@ -142,7 +142,7 @@ const Index = () => {
           ...data,
           service_provider: providers.find(p => p.id === data.service_provider_id)?.name || '',
           status: calculateStatus(data.expected_return_date),
-          images: Array.isArray(data.images) ? data.images : []
+          images: Array.isArray(data.images) ? data.images.map(img => String(img)) : []
         };
         setParts([...parts, formattedPart]);
         toast({
@@ -171,7 +171,7 @@ const Index = () => {
         .update({
           ...dbPart,
           status: calculateStatus(updatedPart.expected_return_date),
-          images: dbPart.images || []
+          images: dbPart.images.map(img => String(img))
         })
         .eq('id', editingPart.id)
         .select()
@@ -184,7 +184,7 @@ const Index = () => {
           ...data,
           service_provider: providers.find(p => p.id === data.service_provider_id)?.name || '',
           status: calculateStatus(data.expected_return_date),
-          images: Array.isArray(data.images) ? data.images : []
+          images: Array.isArray(data.images) ? data.images.map(img => String(img)) : []
         };
         setParts(parts.map((p) => (p.id === editingPart.id ? formattedPart : p)));
         toast({
