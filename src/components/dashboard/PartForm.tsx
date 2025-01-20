@@ -151,7 +151,7 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
             actual_return_date: data.actual_return_date,
             estimated_duration: data.estimated_duration,
             notes: data.notes,
-            images: data.images,
+            images: Array.isArray(data.images) ? data.images : [],
           };
           onSubmit(transformedData);
           toast({
@@ -179,6 +179,35 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
 
   const handleRemoveImage = (imageUrl: string) => {
     setImages(prev => prev.filter(url => url !== imageUrl));
+  };
+
+  const handleNewProvider = async (provider: ServiceProvider) => {
+    setIsLoadingProviders(true);
+    try {
+      const { data: newProviders, error } = await supabase
+        .from('service_providers')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      if (newProviders) {
+        setLocalProviders(newProviders);
+        setSelectedProvider(provider);
+        setFormData(prev => ({
+          ...prev,
+          serviceProvider: provider.id
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching providers:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a lista de prestadores.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingProviders(false);
+    }
   };
 
   return (

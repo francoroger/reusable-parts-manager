@@ -49,7 +49,8 @@ const Index = () => {
         const formattedOrders: Part[] = orders.map(order => ({
           ...order,
           service_provider: order.service_providers?.name || '',
-          status: calculateStatus(order.expected_return_date)
+          status: calculateStatus(order.expected_return_date),
+          images: Array.isArray(order.images) ? order.images : []
         }));
         setParts(formattedOrders);
       }
@@ -121,7 +122,6 @@ const Index = () => {
 
   const handleAddPart = async (newPart: Omit<Part, "id" | "status" | "archived">) => {
     try {
-      // Remove service_provider from the data as it's not a column in the database
       const { service_provider, ...dbPart } = newPart;
       
       const { data, error } = await supabase
@@ -129,7 +129,8 @@ const Index = () => {
         .insert({
           ...dbPart,
           archived: false,
-          status: calculateStatus(newPart.expected_return_date)
+          status: calculateStatus(newPart.expected_return_date),
+          images: dbPart.images || []
         })
         .select()
         .single();
@@ -140,7 +141,8 @@ const Index = () => {
         const formattedPart: Part = {
           ...data,
           service_provider: providers.find(p => p.id === data.service_provider_id)?.name || '',
-          status: calculateStatus(data.expected_return_date)
+          status: calculateStatus(data.expected_return_date),
+          images: Array.isArray(data.images) ? data.images : []
         };
         setParts([...parts, formattedPart]);
         toast({
@@ -162,14 +164,14 @@ const Index = () => {
     if (!editingPart) return;
 
     try {
-      // Remove service_provider from the data as it's not a column in the database
       const { service_provider, ...dbPart } = updatedPart;
 
       const { data, error } = await supabase
         .from('service_orders')
         .update({
           ...dbPart,
-          status: calculateStatus(updatedPart.expected_return_date)
+          status: calculateStatus(updatedPart.expected_return_date),
+          images: dbPart.images || []
         })
         .eq('id', editingPart.id)
         .select()
@@ -181,7 +183,8 @@ const Index = () => {
         const formattedPart: Part = {
           ...data,
           service_provider: providers.find(p => p.id === data.service_provider_id)?.name || '',
-          status: calculateStatus(data.expected_return_date)
+          status: calculateStatus(data.expected_return_date),
+          images: Array.isArray(data.images) ? data.images : []
         };
         setParts(parts.map((p) => (p.id === editingPart.id ? formattedPart : p)));
         toast({
