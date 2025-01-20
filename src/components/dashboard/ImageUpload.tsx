@@ -47,7 +47,6 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
       });
     } finally {
       setIsUploading(false);
-      // Clear the input value to allow selecting the same file again
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -55,7 +54,7 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    event.preventDefault();
+    event.stopPropagation();
     const file = event.target.files?.[0];
     
     if (file) {
@@ -69,7 +68,7 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
   };
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
       <input
         type="file"
         ref={fileInputRef}
@@ -80,7 +79,11 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
       <Button
         variant="outline"
         size="sm"
-        onClick={() => fileInputRef.current?.click()}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          fileInputRef.current?.click();
+        }}
         disabled={isUploading}
       >
         <Upload className="h-4 w-4 mr-2" />
@@ -91,10 +94,10 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
         size="sm"
         onClick={(e) => {
           e.preventDefault();
+          e.stopPropagation();
           if (fileInputRef.current) {
             fileInputRef.current.setAttribute('capture', 'environment');
             fileInputRef.current.click();
-            // Remove the capture attribute after clicking to allow regular file selection
             setTimeout(() => {
               if (fileInputRef.current) {
                 fileInputRef.current.removeAttribute('capture');
