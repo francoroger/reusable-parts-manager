@@ -19,11 +19,14 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const filePath = fileName;
 
       const { error: uploadError, data } = await supabase.storage
         .from('service_order_images')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) throw uploadError;
 
@@ -32,7 +35,10 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
           .from('service_order_images')
           .getPublicUrl(filePath);
         
-        onImageUpload(publicUrl);
+        // Remove any potential malformed URL parts
+        const cleanUrl = publicUrl.replace(':/', '/');
+        
+        onImageUpload(cleanUrl);
         toast({
           title: "Imagem enviada",
           description: "A imagem foi enviada com sucesso.",
