@@ -22,7 +22,6 @@ const Index = () => {
   const [editingPart, setEditingPart] = useState<Part | undefined>();
   const { toast } = useToast();
 
-  // Fetch both providers and service orders on component mount
   useEffect(() => {
     fetchProviders();
     fetchServiceOrders();
@@ -94,12 +93,16 @@ const Index = () => {
 
   const handleAddPart = async (newPart: Omit<Part, "id" | "status" | "archived">) => {
     try {
+      // Remove service_provider from the data as it's not a column in the database
+      const { service_provider, ...dbPart } = newPart;
+      
       const { data, error } = await supabase
         .from('service_orders')
-        .insert([{
-          ...newPart,
-          archived: false
-        }])
+        .insert({
+          ...dbPart,
+          archived: false,
+          status: calculateStatus(newPart.expected_return_date)
+        })
         .select()
         .single();
 
@@ -131,10 +134,14 @@ const Index = () => {
     if (!editingPart) return;
 
     try {
+      // Remove service_provider from the data as it's not a column in the database
+      const { service_provider, ...dbPart } = updatedPart;
+
       const { data, error } = await supabase
         .from('service_orders')
         .update({
-          ...updatedPart
+          ...dbPart,
+          status: calculateStatus(updatedPart.expected_return_date)
         })
         .eq('id', editingPart.id)
         .select()
