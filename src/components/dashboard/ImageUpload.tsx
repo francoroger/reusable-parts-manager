@@ -48,10 +48,24 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
     }
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      handleFileUpload(file);
+      // Prevent default form submission or page reload
+      event.preventDefault();
+      
+      // Show loading toast
+      toast({
+        title: "Enviando imagem",
+        description: "Aguarde enquanto a imagem é enviada...",
+      });
+      
+      await handleFileUpload(file);
+      
+      // Clear the input value to allow selecting the same file again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
