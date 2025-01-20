@@ -221,15 +221,9 @@ export const PartForm = ({ open, onClose, onSubmit, providers, initialData }: Pa
           className="sm:max-w-[425px] max-w-[95vw] w-full overflow-y-auto max-h-[90vh]"
           onPointerDownOutside={(e) => {
             e.preventDefault();
-            if (isSubmitting) {
-              e.preventDefault();
-            }
           }}
           onInteractOutside={(e) => {
             e.preventDefault();
-            if (isSubmitting) {
-              e.preventDefault();
-            }
           }}
           onClick={(e) => e.stopPropagation()}
         >
