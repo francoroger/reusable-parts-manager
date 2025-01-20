@@ -13,6 +13,8 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (file: File) => {
+    if (isUploading) return;
+    
     setIsUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
@@ -45,27 +47,24 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
       });
     } finally {
       setIsUploading(false);
-    }
-  };
-
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Prevent default form submission or page reload
-      event.preventDefault();
-      
-      // Show loading toast
-      toast({
-        title: "Enviando imagem",
-        description: "Aguarde enquanto a imagem é enviada...",
-      });
-      
-      await handleFileUpload(file);
-      
       // Clear the input value to allow selecting the same file again
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+    }
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    const file = event.target.files?.[0];
+    
+    if (file) {
+      toast({
+        title: "Processando imagem",
+        description: "Aguarde enquanto a imagem é processada...",
+      });
+      
+      await handleFileUpload(file);
     }
   };
 
@@ -90,7 +89,8 @@ export const ImageUpload = ({ onImageUpload }: ImageUploadProps) => {
       <Button
         variant="outline"
         size="sm"
-        onClick={() => {
+        onClick={(e) => {
+          e.preventDefault();
           if (fileInputRef.current) {
             fileInputRef.current.setAttribute('capture', 'environment');
             fileInputRef.current.click();
