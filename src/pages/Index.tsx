@@ -11,7 +11,11 @@ import { DashboardView } from "@/components/dashboard/DashboardView";
 import { PartsGrid } from "@/components/dashboard/PartsGrid";
 import { KanbanBoard } from "@/components/dashboard/KanbanBoard";
 import { ServiceProviderList } from "@/components/dashboard/ServiceProviderList";
+import { OrdersTable } from "@/components/dashboard/OrdersTable";
 import { supabase } from "@/integrations/supabase/client";
+
+// This would typically come from your build process
+const APP_VERSION = "1.0.0";
 
 const Index = () => {
   const [parts, setParts] = useState<Part[]>([]);
@@ -89,6 +93,30 @@ const Index = () => {
     if (daysUntilReturn < 0) return "delayed";
     if (daysUntilReturn <= 2) return "warning";
     return "ontime";
+  };
+
+  const handleDeletePart = async (part: Part) => {
+    try {
+      const { error } = await supabase
+        .from('service_orders')
+        .delete()
+        .eq('id', part.id);
+
+      if (error) throw error;
+
+      setParts(parts.filter((p) => p.id !== part.id));
+      toast({
+        title: "OS excluída",
+        description: `OS #${part.service_order_number} foi excluída com sucesso.`,
+      });
+    } catch (error) {
+      console.error('Error deleting service order:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a ordem de serviço.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleAddPart = async (newPart: Omit<Part, "id" | "status" | "archived">) => {
@@ -286,17 +314,19 @@ const Index = () => {
             </TabsContent>
 
             <TabsContent value="active" className="space-y-6">
-              <PartsGrid
+              <OrdersTable
                 parts={filteredParts}
                 onEditPart={setEditingPart}
+                onDeletePart={handleDeletePart}
                 onArchivePart={handleArchivePart}
               />
             </TabsContent>
 
             <TabsContent value="archived" className="space-y-6">
-              <PartsGrid
+              <OrdersTable
                 parts={filteredParts}
                 onEditPart={setEditingPart}
+                onDeletePart={handleDeletePart}
                 onArchivePart={handleArchivePart}
                 showArchived={true}
               />
@@ -328,6 +358,10 @@ const Index = () => {
           onClose={() => setIsAddingProvider(false)}
           onSubmit={handleAddProvider}
         />
+
+        <footer className="mt-8 text-center text-sm text-gray-500">
+          Versão {APP_VERSION}
+        </footer>
       </div>
     </div>
   );
